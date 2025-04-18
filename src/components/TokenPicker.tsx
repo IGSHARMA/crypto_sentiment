@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TokenChip } from "@/components/TokenChip";
 
+// Match the type from our API
 type Token = {
     id: string;
     symbol: string;
@@ -12,6 +13,7 @@ type Token = {
     logo?: string;
     market_cap: number;
     price_change_percentage_24h: number;
+    current_price?: number;
 };
 
 export function TokenPicker() {
@@ -19,13 +21,27 @@ export function TokenPicker() {
     const [tokens, setTokens] = useState<Token[]>([]);
     const [selectedTokens, setSelectedTokens] = useState<string[]>([]);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        // In a real implementation, this would fetch from your API
-        const fetchTopTokens = async () => {
-            setIsLoading(true);
-            try {
-                // Mock data for now
+    const fetchTopTokens = async () => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const response = await fetch('/api/top25');
+
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            setTokens(data);
+        } catch (error) {
+            console.error("Failed to fetch top tokens:", error);
+            setError("Failed to load token data. Please try again later.");
+
+            // Fallback to mock data in development
+            if (process.env.NODE_ENV === 'development') {
                 const mockTokens: Token[] = [
                     { id: "bitcoin", symbol: "BTC", name: "Bitcoin", market_cap: 1000000000000, price_change_percentage_24h: 2.5 },
                     { id: "ethereum", symbol: "ETH", name: "Ethereum", market_cap: 500000000000, price_change_percentage_24h: -1.2 },
@@ -33,15 +49,14 @@ export function TokenPicker() {
                     { id: "cardano", symbol: "ADA", name: "Cardano", market_cap: 30000000000, price_change_percentage_24h: 0.8 },
                     { id: "dogecoin", symbol: "DOGE", name: "Dogecoin", market_cap: 20000000000, price_change_percentage_24h: -3.1 },
                 ];
-
                 setTokens(mockTokens);
-            } catch (error) {
-                console.error("Failed to fetch top tokens:", error);
-            } finally {
-                setIsLoading(false);
             }
-        };
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchTopTokens();
     }, []);
 
@@ -63,7 +78,15 @@ export function TokenPicker() {
         try {
             // In a real implementation, this would call your API
             console.log("Analyzing tokens:", selectedTokens);
-            // Simulate API call
+
+            // Here you would call your analysis API
+            // const response = await fetch('/api/analyze', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({ symbols: selectedTokens })
+            // });
+
+            // Simulate API call for now
             await new Promise(resolve => setTimeout(resolve, 2000));
         } catch (error) {
             console.error("Analysis failed:", error);
@@ -73,18 +96,7 @@ export function TokenPicker() {
     };
 
     const refreshList = async () => {
-        setIsLoading(true);
-        try {
-            // In a real implementation, this would refresh the token list
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            // Mock refreshed data
-            const refreshedTokens = [...tokens].sort(() => Math.random() - 0.5);
-            setTokens(refreshedTokens);
-        } catch (error) {
-            console.error("Failed to refresh token list:", error);
-        } finally {
-            setIsLoading(false);
-        }
+        await fetchTopTokens();
     };
 
     return (
@@ -99,14 +111,20 @@ export function TokenPicker() {
                     onClick={refreshList}
                     disabled={isLoading}
                 >
-                    Refresh List
+                    {isLoading ? "Loading..." : "Refresh List"}
                 </Button>
             </div>
+
+            {error && (
+                <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-900 dark:text-red-100">
+                    {error}
+                </div>
+            )}
 
             {isLoading ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                     {Array(10).fill(0).map((_, i) => (
-                        <Skeleton key={i} className="h-12 w-full" />
+                        <Skeleton key={i} className="h-16 w-full" />
                     ))}
                 </div>
             ) : (
