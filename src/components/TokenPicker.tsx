@@ -99,6 +99,9 @@ export function TokenPicker() {
         if (selectedTokens.length === 0) return;
 
         setIsAnalyzing(true);
+        // Dispatch event to indicate analysis has started
+        window.dispatchEvent(new CustomEvent('analysisStart'));
+
         try {
             // Find the full token objects for the selected IDs
             const tokensToAnalyze = tokens.filter(token => selectedTokens.includes(token.id));
@@ -121,10 +124,21 @@ export function TokenPicker() {
             }
 
             const results = await response.json();
+            console.log("Analysis results:", results);
 
-            // Dispatch event with results for ResultGrid to pick up
-            const event = new CustomEvent('analysisComplete', { detail: results });
-            window.dispatchEvent(event);
+            // Make sure we're dispatching the correct data structure
+            // The ResultGrid is expecting an array of AnalysisResult objects
+            if (results && results.tokens) {
+                // Dispatch event with the tokens array for ResultGrid to pick up
+                window.dispatchEvent(new CustomEvent('analysisComplete', {
+                    detail: results.tokens
+                }));
+
+                setSelectedTokens([]);
+            } else {
+                console.error("Unexpected response format:", results);
+                setError("Analysis returned an unexpected format. Please try again.");
+            }
 
         } catch (error) {
             console.error("Analysis failed:", error);
@@ -166,6 +180,11 @@ export function TokenPicker() {
             const results = await response.json();
             setComparisonResult(results.portfolio);
 
+            // Dispatch event with comparison results for ComparisonResults component
+            window.dispatchEvent(new CustomEvent('comparisonComplete', {
+                detail: results.portfolio
+            }));
+
         } catch (error) {
             console.error("Comparison failed:", error);
             setError("Comparison failed. Please try again later.");
@@ -176,51 +195,8 @@ export function TokenPicker() {
 
     if (isLoading) {
         return (
-            <div className="space-y-4">
-                <div className="overflow-x-auto rounded-lg border">
-                    <table className="w-full">
-                        <thead className="bg-gray-50 dark:bg-gray-800">
-                            <tr>
-                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">#</th>
-                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Name</th>
-                                <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Price</th>
-                                <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">24h %</th>
-                                <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Market Cap</th>
-                                <th className="px-4 py-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400">Select</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                            {Array(10).fill(0).map((_, i) => (
-                                <tr key={i} className="bg-white dark:bg-gray-900">
-                                    <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
-                                        <Skeleton className="h-4 w-4" />
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <div className="flex items-center gap-2">
-                                            <Skeleton className="h-8 w-8 rounded-full" />
-                                            <div>
-                                                <Skeleton className="h-4 w-20" />
-                                                <Skeleton className="h-3 w-24 mt-1" />
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-3 text-right">
-                                        <Skeleton className="h-4 w-16 ml-auto" />
-                                    </td>
-                                    <td className="px-4 py-3 text-right">
-                                        <Skeleton className="h-4 w-12 ml-auto" />
-                                    </td>
-                                    <td className="px-4 py-3 text-right">
-                                        <Skeleton className="h-4 w-24 ml-auto" />
-                                    </td>
-                                    <td className="px-4 py-3 text-center">
-                                        <Skeleton className="h-6 w-6 mx-auto rounded" />
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+            <div className="flex justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
         );
     }
@@ -234,8 +210,10 @@ export function TokenPicker() {
             )}
 
             <div className="flex justify-between items-center">
-                <div className="text-sm">
-                    {selectedTokens.length}/10 tokens selected
+                <div className="space-y-1">
+                    <div className="text-sm font-bold text-white-600 dark:text-white-400">
+                        Top 25 Tokens by Volume in prev 24h
+                    </div>
                 </div>
                 <Button
                     onClick={fetchTopTokens}
@@ -247,36 +225,36 @@ export function TokenPicker() {
                 </Button>
             </div>
 
-            <div className="overflow-x-auto rounded-lg border">
-                <table className="w-full">
-                    <thead className="bg-gray-50 dark:bg-gray-800">
+            <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-100 dark:bg-gray-800">
                         <tr>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">#</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Name</th>
-                            <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Price</th>
-                            <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">24h %</th>
-                            <th className="px-4 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Market Cap</th>
-                            <th className="px-4 py-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400">Select</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">#</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Price</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">24h %</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Market Cap</th>
+                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Select</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="bg-transparent dark:bg-transparent divide-y divide-gray-200 dark:divide-gray-700">
                         {tokens.map((token, index) => {
                             const isSelected = selectedTokens.includes(token.id);
                             const priceChangeColor = token.price_change_percentage_24h >= 0
-                                ? "text-green-600"
-                                : "text-red-600";
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-red-600 dark:text-red-400";
 
                             return (
                                 <tr
                                     key={token.id}
                                     className={cn(
-                                        "bg-white dark:bg-gray-900",
-                                        isSelected && "bg-blue-50 dark:bg-blue-950"
+                                        "hover:bg-gray-50 dark:hover:bg-gray-800",
+                                        isSelected && "bg-blue-50/50 dark:bg-blue-900/20"
                                     )}
                                 >
-                                    <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{index + 1}</td>
-                                    <td className="px-4 py-3">
-                                        <div className="flex items-center gap-2">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{index + 1}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="flex items-center">
                                             {token.logo ? (
                                                 <img src={token.logo} alt={token.name} className="w-8 h-8 rounded-full" />
                                             ) : (
@@ -284,39 +262,46 @@ export function TokenPicker() {
                                                     {token.symbol.charAt(0)}
                                                 </div>
                                             )}
-                                            <div>
-                                                <div className="font-medium">{token.symbol}</div>
-                                                <div className="text-xs text-gray-500">{token.name}</div>
+                                            <div className="ml-4">
+                                                <div className="text-sm font-medium text-gray-900 dark:text-white">{token.symbol}</div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400">{token.name}</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-4 py-3 text-right font-mono font-medium">
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono font-medium text-gray-900 dark:text-white">
                                         ${token.current_price?.toLocaleString() || "N/A"}
                                     </td>
-                                    <td className={`px-4 py-3 text-right font-medium ${priceChangeColor}`}>
-                                        {token.price_change_percentage_24h >= 0 ? "+" : ""}
-                                        {token.price_change_percentage_24h.toFixed(1)}%
+                                    <td className={`px-6 py-4 whitespace-nowrap text-right text-sm font-medium ${priceChangeColor}`}>
+                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${token.price_change_percentage_24h >= 0
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                            }`}>
+                                            {token.price_change_percentage_24h >= 0 ? "+" : ""}
+                                            {token.price_change_percentage_24h.toFixed(2)}%
+                                        </span>
                                     </td>
-                                    <td className="px-4 py-3 text-right font-medium">
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900 dark:text-white">
                                         ${(token.market_cap / 1000000000).toFixed(1)}B
                                     </td>
-                                    <td className="px-4 py-3 text-center">
-                                        <button
-                                            onClick={() => toggleToken(token.id)}
-                                            className={cn(
-                                                "w-6 h-6 rounded border flex items-center justify-center",
-                                                isSelected
-                                                    ? "bg-blue-500 border-blue-500 text-white"
-                                                    : "border-gray-300 dark:border-gray-600"
-                                            )}
-                                            disabled={selectedTokens.length >= 10 && !isSelected}
-                                        >
-                                            {isSelected && (
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                                </svg>
-                                            )}
-                                        </button>
+                                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                                        <div className="flex justify-center">
+                                            <button
+                                                onClick={() => toggleToken(token.id)}
+                                                className={cn(
+                                                    "w-6 h-6 rounded border flex items-center justify-center",
+                                                    isSelected
+                                                        ? "bg-blue-500 border-blue-500 text-white"
+                                                        : "border-gray-300 dark:border-gray-600"
+                                                )}
+                                                disabled={selectedTokens.length >= 10 && !isSelected}
+                                            >
+                                                {isSelected && (
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                                    </svg>
+                                                )}
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             );
@@ -325,26 +310,49 @@ export function TokenPicker() {
                 </table>
             </div>
 
-            <div className="flex justify-end gap-3">
-                <Button
-                    onClick={handleCompareTokens}
-                    variant="outline"
-                    disabled={selectedTokens.length < 2 || isComparing}
-                    className="px-6"
-                >
-                    {isComparing ? "Comparing..." : `Compare ${selectedTokens.length} Tokens`}
-                </Button>
+            <div className="sticky bottom-4 left-0 right-0 flex justify-center gap-4 mt-6">
+                <div className="bg-gray-800/90 dark:bg-gray-900/90 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border border-gray-700/50">
+                    <div className="flex items-center gap-4">
+                        <span className="text-sm text-gray-400">{selectedTokens.length} tokens selected</span>
+                        <div className="h-8 border-l border-gray-600"></div>
 
-                <Button
-                    onClick={handleAnalyze}
-                    disabled={selectedTokens.length === 0 || isAnalyzing}
-                    className="px-6"
-                >
-                    {isAnalyzing ? "Analyzing..." : "Analyze Selected Tokens"}
-                </Button>
+                        <div className="relative flex rounded-full overflow-hidden border border-gray-700">
+                            <div
+                                className="absolute bg-blue-600/20 h-full transition-all duration-200 ease-in-out rounded-full"
+                                style={{
+                                    width: '50%',
+                                    left: isAnalyzing ? '50%' : '0%',
+                                    transform: isAnalyzing ? 'translateX(0)' : 'translateX(0)'
+                                }}
+                            />
+
+                            <button
+                                onClick={handleCompareTokens}
+                                disabled={selectedTokens.length < 2 || isComparing}
+                                className={`relative px-4 py-2 text-sm font-medium transition-colors ${!isAnalyzing
+                                    ? 'text-white'
+                                    : 'text-gray-400 hover:text-white'
+                                    }`}
+                            >
+                                {isComparing ? "Comparing..." : "Compare"}
+                            </button>
+
+                            <button
+                                onClick={handleAnalyze}
+                                disabled={selectedTokens.length === 0 || isAnalyzing}
+                                className={`relative px-4 py-2 text-sm font-medium transition-colors ${isAnalyzing
+                                    ? 'text-white'
+                                    : 'text-gray-400 hover:text-white'
+                                    }`}
+                            >
+                                {isAnalyzing ? "Analyzing..." : "Analyze"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            {/* Add comparison dialog */}
+            {/* Comparison dialog */}
             <Dialog open={comparisonOpen} onOpenChange={setComparisonOpen}>
                 <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
