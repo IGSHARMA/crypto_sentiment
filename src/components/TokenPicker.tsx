@@ -4,6 +4,14 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
 
 export type Token = {
     id: string;
@@ -15,12 +23,27 @@ export type Token = {
     current_price?: number;
 };
 
+export type PortfolioRanking = {
+    rankedTokens: {
+        rank: number;
+        symbol: string;
+        decision: "BUY" | "HOLD" | "SELL";
+        rationale: string;
+    }[];
+    summary: string;
+};
+
 export function TokenPicker() {
     const [isLoading, setIsLoading] = useState(true);
     const [tokens, setTokens] = useState<Token[]>([]);
     const [selectedTokens, setSelectedTokens] = useState<string[]>([]);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Add new state for comparison
+    const [isComparing, setIsComparing] = useState(false);
+    const [comparisonOpen, setComparisonOpen] = useState(false);
+    const [comparisonResult, setComparisonResult] = useState<PortfolioRanking | null>(null);
 
     const fetchTopTokens = async () => {
         setIsLoading(true);
@@ -108,6 +131,46 @@ export function TokenPicker() {
             setError("Analysis failed. Please try again later.");
         } finally {
             setIsAnalyzing(false);
+        }
+    };
+
+    // Add new function to handle token comparison
+    const handleCompareTokens = async () => {
+        if (selectedTokens.length < 2) return;
+
+        setIsComparing(true);
+        setComparisonOpen(true);
+        setError(null);
+
+        try {
+            // Find the full token objects for the selected IDs
+            const tokensToAnalyze = tokens.filter(token => selectedTokens.includes(token.id));
+
+            // Extract just the symbols for the API request
+            const symbols = tokensToAnalyze.map(token => token.symbol);
+
+            console.log("Comparing symbols:", symbols);
+
+            const response = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ symbols }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Analysis API error: ${response.status}`);
+            }
+
+            const results = await response.json();
+            setComparisonResult(results.portfolio);
+
+        } catch (error) {
+            console.error("Comparison failed:", error);
+            setError("Comparison failed. Please try again later.");
+        } finally {
+            setIsComparing(false);
         }
     };
 
@@ -262,7 +325,16 @@ export function TokenPicker() {
                 </table>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-3">
+                <Button
+                    onClick={handleCompareTokens}
+                    variant="outline"
+                    disabled={selectedTokens.length < 2 || isComparing}
+                    className="px-6"
+                >
+                    {isComparing ? "Comparing..." : `Compare ${selectedTokens.length} Tokens`}
+                </Button>
+
                 <Button
                     onClick={handleAnalyze}
                     disabled={selectedTokens.length === 0 || isAnalyzing}
@@ -271,6 +343,73 @@ export function TokenPicker() {
                     {isAnalyzing ? "Analyzing..." : "Analyze Selected Tokens"}
                 </Button>
             </div>
+
+            {/* Add comparison dialog */}
+            <Dialog open={comparisonOpen} onOpenChange={setComparisonOpen}>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Portfolio Comparison</DialogTitle>
+                        <DialogDescription>
+                            Ranked comparison of your selected tokens
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {isComparing ? (
+                        <div className="space-y-4 py-4">
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-20 w-full" />
+                            <div className="space-y-2">
+                                {Array.from({ length: selectedTokens.length }).map((_, i) => (
+                                    <Skeleton key={i} className="h-16 w-full" />
+                                ))}
+                            </div>
+                        </div>
+                    ) : comparisonResult ? (
+                        <div className="space-y-6">
+                            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                                <h3 className="font-medium mb-2">Portfolio Summary</h3>
+                                <p>{comparisonResult.summary}</p>
+                            </div>
+
+                            <div>
+                                <h3 className="font-medium mb-3">Ranked Recommendations</h3>
+                                <div className="space-y-3">
+                                    {comparisonResult.rankedTokens.map((token) => (
+                                        <div
+                                            key={token.symbol}
+                                            className="border rounded-lg p-3 flex items-center dark:border-gray-700"
+                                        >
+                                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-bold">
+                                                {token.rank}
+                                            </div>
+                                            <div className="ml-3 flex-grow">
+                                                <div className="flex items-center justify-between">
+                                                    <h4 className="font-medium">{token.symbol}</h4>
+                                                    <span className={`px-2 py-1 text-xs rounded-full font-medium ${token.decision === "BUY"
+                                                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                                                        : token.decision === "SELL"
+                                                            ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
+                                                            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
+                                                        }`}>
+                                                        {token.decision}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{token.rationale}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="py-6 text-center text-gray-500">No comparison data available</div>
+                    )}
+
+                    <DialogFooter>
+                        <Button onClick={() => setComparisonOpen(false)}>Close</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 } 

@@ -21,7 +21,7 @@ export type LunarCrushData = {
     sentiment: number;
     interactions_24h: number;
     num_contributors: number;
-    top_posts?: any[];
+    top_posts: any[]; // Add top_posts to store Twitter posts
 };
 
 // Type for Twitter sentiment data
@@ -69,6 +69,17 @@ export type AnalysisResult = {
     }[];
 };
 
+// Add type for portfolio ranking result
+export type PortfolioRanking = {
+    rankedTokens: {
+        rank: number;
+        symbol: string;
+        decision: "BUY" | "HOLD" | "SELL";
+        rationale: string;
+    }[];
+    summary: string;
+};
+
 async function fetchLunarCrushData(symbol: string): Promise<LunarCrushData | null> {
     // Check cache first
     const cacheKey = `lc:${symbol.toLowerCase()}`;
@@ -87,7 +98,7 @@ async function fetchLunarCrushData(symbol: string): Promise<LunarCrushData | nul
             return null;
         }
 
-        // Update to use the v4 API endpoint with the topic endpoint
+        // Update to use the topic endpoint from the v4 API
         const apiUrl = `https://lunarcrush.com/api4/public/topic/${symbol.toLowerCase()}/v1`;
 
         const response = await fetch(
@@ -133,7 +144,7 @@ async function fetchLunarCrushData(symbol: string): Promise<LunarCrushData | nul
 
         const responseData = await response.json();
 
-        // Extract the relevant data from the v4 API response
+        // Extract the relevant data from the topic API response
         const data = {
             symbol: symbol,
             name: responseData.config?.name || symbol,
@@ -615,6 +626,81 @@ Sources: ${sources.map((s: { title: string; summary: string }) => s.title).join(
     }
 }
 
+// Add function to rank analyzed tokens as a portfolio
+async function rankPortfolio(tokenResults: AnalysisResult[]): Promise<PortfolioRanking> {
+    try {
+        console.log(`Ranking portfolio of ${tokenResults.length} tokens...`);
+
+        const rankingResponse = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo",
+            messages: [
+                {
+                    role: "system",
+                    content: "You are a crypto portfolio advisor. Rank tokens from strongest BUY to strongest SELL based on the provided analyses."
+                },
+                {
+                    role: "user",
+                    content: `
+Here are analyses for ${tokenResults.length} tokens:
+${JSON.stringify(tokenResults.map(t => ({
+                        symbol: t.symbol,
+                        name: t.name,
+                        price: t.price,
+                        priceChange24h: t.priceChange24h,
+                        twitterSentiment: t.twitterSentiment,
+                        recommendation: t.recommendation,
+                        explanation: t.explanation,
+                        drivers: t.drivers
+                    })), null, 2)}
+
+Rank these tokens from strongest BUY to strongest SELL. Consider:
+1. Twitter sentiment scores and volume
+2. Price momentum
+3. News and market drivers
+4. The individual token recommendations
+
+Output a JSON object with:
+1. "rankedTokens": array of {rank, symbol, decision, rationale} where decision is BUY/HOLD/SELL
+2. "summary": A 2-3 sentence portfolio strategy summary
+`
+                }
+            ],
+            response_format: { type: "json_object" }
+        });
+
+        const rankingContent = rankingResponse.choices[0].message.content || '{"rankedTokens":[], "summary":""}';
+        const ranking = JSON.parse(rankingContent);
+
+        // Ensure proper structure even if LLM output is malformed
+        const result: PortfolioRanking = {
+            rankedTokens: Array.isArray(ranking.rankedTokens) ? ranking.rankedTokens : [],
+            summary: ranking.summary || `Analysis of ${tokenResults.length} tokens completed. Review individual recommendations for details.`
+        };
+
+        return result;
+    } catch (error) {
+        console.error('Error ranking portfolio:', error);
+
+        // Return fallback ranking based on individual recommendations
+        return {
+            rankedTokens: tokenResults
+                .sort((a, b) => {
+                    // Simple scoring: BUY (2), HOLD (1), SELL (0)
+                    const scoreA = a.recommendation === "BUY" ? 2 : a.recommendation === "HOLD" ? 1 : 0;
+                    const scoreB = b.recommendation === "BUY" ? 2 : b.recommendation === "HOLD" ? 1 : 0;
+                    return scoreB - scoreA;
+                })
+                .map((token, index) => ({
+                    rank: index + 1,
+                    symbol: token.symbol,
+                    decision: token.recommendation,
+                    rationale: token.rationale.split('-')[1]?.trim() || token.rationale
+                })),
+            summary: `Fallback ranking based on individual token recommendations. Tokens are sorted by recommendation strength (BUY > HOLD > SELL).`
+        };
+    }
+}
+
 // Update the cache key to match what's used in top25/route.ts
 const CACHE_KEY = 'top25_tokens'; // Make sure this matches the key in top25/route.ts
 const CACHE_TTL = 24 * 60 * 60; // 24 hours in seconds
@@ -727,7 +813,15 @@ export async function POST(request: Request) {
         const results = await Promise.all(analysisPromises);
         console.log(`Successfully analyzed ${results.length} tokens`);
 
-        return NextResponse.json(results);
+        // Add portfolio ranking step (sequential after all parallel analyses complete)
+        const portfolioRanking = await rankPortfolio(results);
+        console.log(`Portfolio ranking completed with ${portfolioRanking.rankedTokens.length} ranked tokens`);
+
+        // Return both individual analyses and portfolio ranking
+        return NextResponse.json({
+            tokens: results,
+            portfolio: portfolioRanking
+        });
     } catch (error) {
         console.error('Error analyzing tokens:', error);
         return NextResponse.json(
