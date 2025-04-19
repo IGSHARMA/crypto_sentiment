@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TokenCard } from "@/components/TokenCard";
 
 type AnalysisResult = {
@@ -12,40 +12,27 @@ type AnalysisResult = {
     drivers: string[];
     recommendation: "BUY" | "HOLD" | "SELL";
     rationale: string;
+    sources: any[];
 };
 
 export function ResultGrid() {
-    const [results, setResults] = useState<AnalysisResult[]>([
-        // Mock data for demonstration
-        {
-            symbol: "BTC",
-            name: "Bitcoin",
-            price: 62345.78,
-            priceChange24h: 2.5,
-            explanation: "Bitcoin surged as institutional investors increased positions following positive ETF inflows. Market sentiment improved after the Fed signaled a potential pause in rate hikes.",
-            drivers: [
-                "Strong ETF inflows of $250M in the last 24h",
-                "Reduced selling pressure from miners",
-                "Positive technical breakout above $60K resistance"
-            ],
-            recommendation: "BUY",
-            rationale: "Momentum indicators suggest continued uptrend with strong institutional backing."
-        },
-        {
-            symbol: "ETH",
-            name: "Ethereum",
-            price: 3456.12,
-            priceChange24h: -1.2,
-            explanation: "Ethereum faced selling pressure as traders rotated capital into Bitcoin and layer-2 solutions. The decline was moderate with support holding at key levels.",
-            drivers: [
-                "Capital rotation from ETH to BTC",
-                "Concerns about high gas fees resurfacing",
-                "Delay in next network upgrade announcement"
-            ],
-            recommendation: "HOLD",
-            rationale: "Current weakness appears temporary; fundamentals remain strong."
-        }
-    ]);
+    const [results, setResults] = useState<AnalysisResult[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        // Listen for analysis results from TokenPicker
+        const handleAnalysisComplete = (event: CustomEvent<AnalysisResult[]>) => {
+            setResults(event.detail);
+        };
+
+        // Add event listener
+        window.addEventListener('analysisComplete', handleAnalysisComplete as EventListener);
+
+        // Clean up
+        return () => {
+            window.removeEventListener('analysisComplete', handleAnalysisComplete as EventListener);
+        };
+    }, []);
 
     if (results.length === 0) {
         return (

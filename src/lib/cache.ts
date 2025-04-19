@@ -1,5 +1,4 @@
-// This is a simple in-memory cache implementation
-// In production, you would use Redis or another distributed cache
+// Would not use this cache in production, but it's fine for now - Pratinav
 
 type CacheEntry<T> = {
     data: T;

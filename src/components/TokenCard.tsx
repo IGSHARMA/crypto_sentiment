@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 type AnalysisResult = {
@@ -14,6 +14,11 @@ type AnalysisResult = {
     drivers: string[];
     recommendation: "BUY" | "HOLD" | "SELL";
     rationale: string;
+    sources: {
+        title: string;
+        url: string;
+        summary: string;
+    }[];
 };
 
 type TokenCardProps = {
@@ -71,11 +76,10 @@ export function TokenCard({ result }: TokenCardProps) {
                             <DialogTrigger asChild>
                                 <Button variant="outline" size="sm">View Details</Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-[500px]">
-                                <DialogHeader>
-                                    <DialogTitle>{result.symbol} ({result.name}) Analysis</DialogTitle>
-                                </DialogHeader>
-                                <div className="space-y-4 mt-4">
+                            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                                <div className="space-y-4">
+                                    <h2 className="text-xl font-semibold">{result.symbol} ({result.name}) Analysis</h2>
+
                                     <div>
                                         <h4 className="font-medium mb-2">Price Movement Explanation</h4>
                                         <p className="text-sm">{result.explanation}</p>
@@ -99,6 +103,29 @@ export function TokenCard({ result }: TokenCardProps) {
                                             <p className="text-sm">{result.rationale}</p>
                                         </div>
                                     </div>
+
+                                    {result.sources && result.sources.length > 0 && (
+                                        <div>
+                                            <h4 className="font-medium mb-2">Sources</h4>
+                                            <div className="space-y-3">
+                                                {result.sources.map((source, i) => (
+                                                    <div key={i} className="border rounded-md p-3">
+                                                        <a
+                                                            href={source.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="font-medium text-blue-600 hover:underline"
+                                                        >
+                                                            {source.title}
+                                                        </a>
+                                                        <p className="text-sm mt-1 text-gray-600 line-clamp-2">
+                                                            {source.summary}
+                                                        </p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </DialogContent>
                         </Dialog>
