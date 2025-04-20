@@ -211,8 +211,11 @@ export function TokenPicker() {
             <div className="flex justify-between items-center">
                 <div className="space-y-1">
                     <div className="text-sm font-bold text-white-600 dark:text-white-400">
-                        Top 25 Tokens by Volume in prev 24h
+                        Top 25 Tokens by Volume in 24h
                     </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Select tokens to compare performance metrics and get AI-powered sentiment analysis and investment recommendations.
+                    </p>
                 </div>
                 <Button
                     onClick={fetchTopTokens}

@@ -511,18 +511,6 @@ export default function Home() {
   return (
     <div className="grid grid-rows-[auto_1fr_auto] min-h-screen p-8 gap-8 font-[family-name:var(--font-geist-sans)] bg-[#0a0d12] text-white">
       <header className="flex items-center justify-between">
-        <div className="flex items-center">
-          <Image
-            src="/degenAI-logo.png"
-            alt="DegenAI Logo"
-            width={60}
-            height={60}
-            className="object-contain"
-          />
-        </div>
-        <div className="text-sm text-gray-400">
-          Data powered by CoinGecko, LunarCrush, and Tavily
-        </div>
       </header>
 
       <main className="flex flex-col gap-8">
@@ -576,8 +564,20 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="flex justify-center items-center py-4 text-sm text-gray-400">
-        <p>© 2025 degenAI • <a href="#" className="underline hover:text-[#4ade80]">Terms</a> • <a href="#" className="underline hover:text-[#4ade80]">Privacy</a></p>
+      <footer className="flex flex-col items-center gap-4 py-4 text-sm text-gray-400">
+        <div className="flex flex-col items-center gap-4">
+          <div>
+            Data powered by CoinGecko, LunarCrush, and Tavily
+          </div>
+          <Image
+            src="/degenAI-logo.png"
+            alt="DegenAI Logo"
+            width={150}
+            height={150}
+            className="object-contain"
+          />
+        </div>
+        <p>© 2025 degenAI • <a href="https://www.linkedin.com/in/pratinav-sharma-a8917398/" className="underline hover:text-[#4ade80]">Contact Us</a></p>
       </footer>
     </div>
   );
