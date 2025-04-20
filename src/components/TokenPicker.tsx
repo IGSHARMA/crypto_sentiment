@@ -29,9 +29,9 @@ export function TokenPicker() {
     const [isLoading, setIsLoading] = useState(true);
     const [tokens, setTokens] = useState<Token[]>([]);
     const [selectedTokens, setSelectedTokens] = useState<string[]>([]);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [_isAnalyzing, _setIsAnalyzing] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [isComparing, setIsComparing] = useState(false);
+    const [_isComparing, setIsComparing] = useState(false);
 
     // Use the global loading context instead of local state
     const { startLoading, stopLoading } = useLoading();
@@ -144,6 +144,9 @@ export function TokenPicker() {
             return;
         }
 
+        // Use the isComparing state
+        setIsComparing(true);
+
         // Use the global loading context
         startLoading(`Comparing ${selectedTokens.length} tokens to optimize your portfolio...`);
 
@@ -186,6 +189,7 @@ export function TokenPicker() {
         } finally {
             // Stop the global loading
             stopLoading();
+            setIsComparing(false);
         }
     };
 
@@ -303,6 +307,13 @@ export function TokenPicker() {
                 </table>
             </div>
 
+            {/* Display error message if present */}
+            {error && (
+                <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                    {error}
+                </div>
+            )}
+
             <div className="sticky bottom-4 left-0 right-0 flex justify-center gap-4 mt-6">
                 <div className="bg-gray-800/90 dark:bg-gray-900/90 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border border-gray-700/50">
                     <div className="flex items-center gap-4">
@@ -314,31 +325,31 @@ export function TokenPicker() {
                                 className="absolute bg-[#252525]/20 h-full transition-all duration-200 ease-in-out rounded-full"
                                 style={{
                                     width: '50%',
-                                    left: isAnalyzing ? '50%' : '0%',
-                                    transform: isAnalyzing ? 'translateX(0)' : 'translateX(0)'
+                                    left: _isAnalyzing ? '50%' : '0%',
+                                    transform: _isAnalyzing ? 'translateX(0)' : 'translateX(0)'
                                 }}
                             />
 
                             <button
                                 onClick={handleCompareTokens}
-                                disabled={selectedTokens.length < 2 || isComparing}
-                                className={`relative px-4 py-2 text-sm font-medium transition-colors ${!isAnalyzing
+                                disabled={selectedTokens.length < 2 || _isComparing}
+                                className={`relative px-4 py-2 text-sm font-medium transition-colors ${!_isAnalyzing
                                     ? 'text-white'
                                     : 'text-gray-400 hover:text-white'
                                     }`}
                             >
-                                {isComparing ? "Comparing..." : "Compare"}
+                                {_isComparing ? "Comparing..." : "Compare"}
                             </button>
 
                             <button
                                 onClick={handleAnalyze}
-                                disabled={selectedTokens.length === 0 || isAnalyzing}
-                                className={`relative px-4 py-2 text-sm font-medium transition-colors ${isAnalyzing
+                                disabled={selectedTokens.length === 0 || _isAnalyzing}
+                                className={`relative px-4 py-2 text-sm font-medium transition-colors ${_isAnalyzing
                                     ? 'text-white'
                                     : 'text-gray-400 hover:text-white'
                                     }`}
                             >
-                                {isAnalyzing ? "Analyzing..." : "Analyze"}
+                                {_isAnalyzing ? "Analyzing..." : "Analyze"}
                             </button>
                         </div>
                     </div>

@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { PortfolioRanking } from "@/components/TokenPicker";
 
 export function ComparisonResults() {
-    const [comparisonData, setComparisonData] = useState<PortfolioRanking | null>(null);
-
     useEffect(() => {
         // Listen for comparison results
         const handleComparisonComplete = (event: CustomEvent<PortfolioRanking>) => {
             console.log("Comparison results received:", event.detail);
-            setComparisonData(event.detail);
+            // Store data when you're ready to use it
         };
 
         // Add event listener
