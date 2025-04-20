@@ -222,14 +222,16 @@ export default function Home() {
             style={{ transitionDelay: '200ms' }}
           >
             <div className="flex items-center justify-center">
-              <Image
-                src="/degenAI-logo.png"
-                alt="DegenAI Logo"
-                width={240}
-                height={240}
-                className="object-contain"
-                priority
-              />
+              <div className="bg-black rounded-full p-2">
+                <Image
+                  src="/degenAI-logo.png"
+                  alt="DegenAI Logo"
+                  width={240}
+                  height={240}
+                  className="object-contain"
+                  priority
+                />
+              </div>
             </div>
           </div>
 
@@ -501,13 +503,15 @@ export default function Home() {
           <div>
             Data powered by CoinGecko, LunarCrush, and Tavily
           </div>
-          <Image
-            src="/degenAI-logo.png"
-            alt="DegenAI Logo"
-            width={150}
-            height={150}
-            className="object-contain"
-          />
+          <div className="bg-black rounded-full p-1">
+            <Image
+              src="/degenAI-logo.png"
+              alt="DegenAI Logo"
+              width={150}
+              height={150}
+              className="object-contain"
+            />
+          </div>
         </div>
         <p>© 2025 degenAI • <a href="https://www.linkedin.com/in/pratinav-sharma-a8917398/" className="underline hover:text-[#4ade80]">Contact Us</a></p>
       </footer>

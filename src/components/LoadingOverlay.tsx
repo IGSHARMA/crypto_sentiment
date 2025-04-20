@@ -9,8 +9,8 @@ export function LoadingOverlay({ isVisible, message = "Processing your request..
     if (!isVisible) return null;
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center z-[9999] pointer-events-none">
-            <div className="bg-[#121824] border border-gray-700 rounded-xl p-8 max-w-md w-full shadow-2xl pointer-events-auto">
+        <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black/50 backdrop-blur-sm pointer-events-auto">
+            <div className="bg-[#121824] border border-gray-700 rounded-xl p-8 max-w-md w-full shadow-2xl">
                 <div className="flex flex-col items-center space-y-6">
                     {/* Animated loading spinner */}
                     <div className="relative w-20 h-20">

@@ -21,8 +21,10 @@ export function ComparisonResults() {
             window.removeEventListener('comparisonComplete', handleComparisonComplete as EventListener);
         };
     }, []);
-    if (!comparisonData) {
-        return (
+
+    // Always show the "Features Coming Soon" section, regardless of comparisonData
+    return (
+        <div className="mt-8">
             <div className="flex flex-col items-center justify-center py-12 text-center">
                 <h2 className="text-2xl font-bold mb-6 text-[#4ade80]">Features Coming Soon</h2>
 
@@ -43,7 +45,6 @@ export function ComparisonResults() {
                         <p className="text-gray-400">Connect your wallet to get balances and AI-powered insights on your portfolio changes daily</p>
                     </div>
 
-
                     <div className="bg-[#111111] p-6 rounded-lg border border-[#222222] hover:border-[#4ade80]/30 transition-colors">
                         <div className="text-3xl mb-4">📰</div>
                         <h3 className="text-lg font-semibold mb-2">Live News Feed</h3>
@@ -57,11 +58,6 @@ export function ComparisonResults() {
                     </div>
                 </div>
             </div>
-        );
-    }
-
-    return (
-        <div className="mt-8">
         </div>
     );
 } 
