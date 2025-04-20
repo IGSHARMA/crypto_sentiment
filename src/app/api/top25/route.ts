@@ -14,7 +14,6 @@ export type Token = {
 
 const CACHE_KEY = 'top25_tokens';
 const CACHE_TTL = 24 * 60 * 60; // 24 hours in seconds
-
 async function fetchFromCoinGecko(): Promise<Token[]> {
     try {
         const response = await fetch(
@@ -32,8 +31,19 @@ async function fetchFromCoinGecko(): Promise<Token[]> {
 
         const data = await response.json();
 
+        // Define type for CoinGecko API response
+        type CoinGeckoResponse = {
+            id: string;
+            symbol: string;
+            name: string;
+            image: string;
+            market_cap: number;
+            price_change_percentage_24h: number;
+            current_price: number;
+        };
+
         // Transform the data to match our Token type
-        return data.map((coin: any) => ({
+        return data.map((coin: CoinGeckoResponse) => ({
             id: coin.id,
             symbol: coin.symbol.toUpperCase(),
             name: coin.name,

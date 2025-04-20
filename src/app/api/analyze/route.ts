@@ -21,7 +21,7 @@ export type LunarCrushData = {
     sentiment: number;
     interactions_24h: number;
     num_contributors: number;
-    top_posts: any[]; // Add top_posts to store Twitter posts
+    top_posts: { text: string; url: string; author: string }[]; // Store Twitter posts with defined structure
 };
 
 // Type for Twitter sentiment data
@@ -83,7 +83,7 @@ export type PortfolioRanking = {
 async function fetchLunarCrushData(symbol: string): Promise<LunarCrushData | null> {
     // Check cache first
     const cacheKey = `lc:${symbol.toLowerCase()}`;
-    let cachedData = await cache.get<LunarCrushData>(cacheKey);
+    const cachedData = await cache.get<LunarCrushData>(cacheKey);
 
     if (cachedData) {
         console.log(`Using cached LunarCrush data for ${symbol}`);
@@ -172,7 +172,7 @@ async function fetchLunarCrushData(symbol: string): Promise<LunarCrushData | nul
 async function fetchNewsHeadlines(symbol: string): Promise<NewsHeadline[]> {
     // Check cache first
     const cacheKey = `news:${symbol.toLowerCase()}`;
-    let cachedData = await cache.get<NewsHeadline[]>(cacheKey);
+    const cachedData = await cache.get<NewsHeadline[]>(cacheKey);
 
     if (cachedData) {
         console.log(`Using cached news headlines for ${symbol}`);
@@ -215,7 +215,12 @@ async function fetchNewsHeadlines(symbol: string): Promise<NewsHeadline[]> {
         const data = await response.json();
 
         // Extract headlines from the results
-        const headlines: NewsHeadline[] = data.results.map((result: any) => ({
+        interface TavilyResult {
+            title: string;
+            url: string;
+        }
+
+        const headlines: NewsHeadline[] = data.results.map((result: TavilyResult) => ({
             title: result.title,
             url: result.url
         }));
@@ -251,7 +256,7 @@ function getMockHeadlines(symbol: string): NewsHeadline[] {
 async function getNewsSentiment(symbol: string): Promise<TwitterSentimentData | null> {
     // Check cache first
     const cacheKey = `sentiment:${symbol.toLowerCase()}`;
-    let cachedData = await cache.get<TwitterSentimentData>(cacheKey);
+    const cachedData = await cache.get<TwitterSentimentData>(cacheKey);
 
     if (cachedData) {
         console.log(`Using cached sentiment data for ${symbol}`);
@@ -323,10 +328,19 @@ async function getNewsSentiment(symbol: string): Promise<TwitterSentimentData | 
 }
 
 // Add a function to fetch top Twitter posts for a symbol
-async function fetchTopTwitterPosts(symbol: string): Promise<any[]> {
+// Define a type for Twitter posts
+type TwitterPost = {
+    network: string;
+    text: string;
+    url: string;
+    user_screen_name: string;
+};
+
+// Update the function to use proper types
+async function fetchTopTwitterPosts(symbol: string): Promise<TwitterPost[]> {
     // Check cache first
     const cacheKey = `twitter_posts:${symbol.toLowerCase()}`;
-    let cachedData = await cache.get<any[]>(cacheKey);
+    const cachedData = await cache.get<TwitterPost[]>(cacheKey);
 
     if (cachedData) {
         console.log(`Using cached Twitter posts for ${symbol}`);
@@ -363,9 +377,9 @@ async function fetchTopTwitterPosts(symbol: string): Promise<any[]> {
         const responseData = await response.json();
 
         // Extract the top Twitter posts
-        const posts = responseData.data?.filter((post: any) =>
+        const posts = (responseData.data?.filter((post: TwitterPost) =>
             post.network === 'twitter' && post.url
-        ).slice(0, 5) || [];
+        ).slice(0, 5) || []) as TwitterPost[];
 
         // Cache the posts
         await cache.set(cacheKey, posts, 60 * 30); // 30 minutes
@@ -374,6 +388,11 @@ async function fetchTopTwitterPosts(symbol: string): Promise<any[]> {
         console.error(`Error fetching Twitter posts for ${symbol}:`, error);
         return [];
     }
+}
+
+// Add this helper function
+function isTwitterPost(post: any): post is TwitterPost {
+    return 'user_screen_name' in post;
 }
 
 // Sequential LLM pipeline for token analysis
@@ -438,11 +457,14 @@ async function analyzeToken(
                     }),
                     signal: AbortSignal.timeout(10000)
                 });
-
                 if (response.ok) {
                     const data = await response.json();
                     if (data.results && Array.isArray(data.results)) {
-                        sources = data.results.map((result: any) => ({
+                        sources = data.results.map((result: {
+                            title?: string;
+                            url?: string;
+                            content?: string;
+                        }) => ({
                             title: result.title || "Untitled Source",
                             url: result.url || "#",
                             summary: result.content || "No summary available"
@@ -462,10 +484,13 @@ async function analyzeToken(
                 summary: "No summary available"
             }));
         }
-
         // Include Twitter posts in sources if available
         if (twitterPosts.length > 0) {
-            const twitterSources = twitterPosts.map((post: any) => ({
+            const twitterSources = twitterPosts.map((post: {
+                user_screen_name?: string;
+                url?: string;
+                text?: string;
+            }) => ({
                 title: `Twitter: ${post.user_screen_name || 'User'} on ${token.symbol}`,
                 url: post.url || `https://twitter.com/search?q=%24${token.symbol}`,
                 summary: post.text || `Recent tweet about ${token.symbol}`
@@ -594,7 +619,7 @@ Sources: ${sources.map((s: { title: string; summary: string }) => s.title).join(
             topTweets: twitterPosts.slice(0, 3).map(post => ({
                 text: post.text || `Tweet about ${token.symbol}`,
                 url: post.url || `https://twitter.com/search?q=%24${token.symbol}`,
-                author: post.user_screen_name || 'Twitter User'
+                author: isTwitterPost(post) ? post.user_screen_name : (post.author || 'Twitter User')
             }))
         };
     } catch (error) {
