@@ -757,7 +757,13 @@ export async function POST(request: Request) {
         if (!tokens) {
             console.log('Cache miss in analyze endpoint. Fetching fresh data...');
             try {
-                const response = await fetch('http://localhost:3000/api/top25');
+                // Use the exact Vercel deployment URL
+                const apiUrl = 'https://crypto-sentiment-psi.vercel.app/';
+
+                console.log(`Fetching from: ${apiUrl}`);
+
+                const response = await fetch(apiUrl);
+
                 if (!response.ok) {
                     throw new Error(`Failed to fetch top25: ${response.status}`);
                 }
