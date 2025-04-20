@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 
 type LoadingOverlayProps = {
     isVisible: boolean;
@@ -9,14 +10,19 @@ export function LoadingOverlay({ isVisible, message = "Processing your request..
     if (!isVisible) return null;
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black/50 backdrop-blur-sm pointer-events-auto">
+        <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black/70 backdrop-blur-sm pointer-events-auto">
             <div className="bg-[#121824] border border-gray-700 rounded-xl p-8 max-w-md w-full shadow-2xl">
                 <div className="flex flex-col items-center space-y-6">
-                    {/* Animated loading spinner */}
-                    <div className="relative w-20 h-20">
-                        <div className="absolute inset-0 rounded-full border-4 border-t-[#D1D1D1] border-r-transparent border-b-[#D1D1D1] border-l-transparent animate-spin"></div>
-                        <div className="absolute inset-2 rounded-full border-4 border-t-transparent border-r-[#D1D1D1] border-b-transparent border-l-[#D1D1D1] animate-spin animation-delay-150"></div>
-                        <div className="absolute inset-4 rounded-full border-4 border-t-[#D1D1D1] border-r-transparent border-b-transparent border-l-transparent animate-spin animation-delay-300"></div>
+                    {/* Logo */}
+                    <div className="bg-black rounded-full p-2 mb-2">
+                        <Image
+                            src="/degenAI-logo.png"
+                            alt="DegenAI Logo"
+                            width={80}
+                            height={80}
+                            className="object-contain animate-pulse"
+                            priority
+                        />
                     </div>
 
                     {/* Loading message */}
@@ -25,11 +31,9 @@ export function LoadingOverlay({ isVisible, message = "Processing your request..
                         <p className="text-gray-300">{message}</p>
                     </div>
 
-                    {/* Animated dots */}
-                    <div className="flex space-x-2">
-                        <div className="w-2 h-2 rounded-full bg-[#D1D1D1] animate-pulse"></div>
-                        <div className="w-2 h-2 rounded-full bg-[#D1D1D1] animate-pulse animation-delay-150"></div>
-                        <div className="w-2 h-2 rounded-full bg-[#D1D1D1] animate-pulse animation-delay-300"></div>
+                    {/* Loading bar */}
+                    <div className="h-2 w-48 bg-[#1a1f29] rounded-full overflow-hidden">
+                        <div className="h-full bg-[#4ade80] animate-loadingBar"></div>
                     </div>
                 </div>
             </div>

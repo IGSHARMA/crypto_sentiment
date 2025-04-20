@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { useLoading } from "@/context/LoadingContext";
 
 export type Token = {
     id: string;
@@ -33,8 +33,8 @@ export function TokenPicker() {
     const [error, setError] = useState<string | null>(null);
     const [isComparing, setIsComparing] = useState(false);
 
-    // Add loading message state
-    const [loadingMessage, setLoadingMessage] = useState("Processing your request...");
+    // Use the global loading context instead of local state
+    const { startLoading, stopLoading } = useLoading();
 
     const fetchTopTokens = async () => {
         setIsLoading(true);
@@ -89,8 +89,9 @@ export function TokenPicker() {
     const handleAnalyze = async () => {
         if (selectedTokens.length === 0) return;
 
-        setIsAnalyzing(true);
-        setLoadingMessage(`Analyzing ${selectedTokens.length} token${selectedTokens.length > 1 ? 's' : ''}...`);
+        // Use the global loading context
+        startLoading(`Analyzing ${selectedTokens.length} token${selectedTokens.length > 1 ? 's' : ''}...`);
+
         // Dispatch event to indicate analysis has started
         window.dispatchEvent(new CustomEvent('analysisStart'));
 
@@ -132,7 +133,8 @@ export function TokenPicker() {
             console.error("Analysis failed:", error);
             setError("Analysis failed. Please try again later.");
         } finally {
-            setIsAnalyzing(false);
+            // Stop the global loading
+            stopLoading();
         }
     };
 
@@ -142,8 +144,9 @@ export function TokenPicker() {
             return;
         }
 
-        setIsComparing(true);
-        setLoadingMessage(`Comparing ${selectedTokens.length} tokens to optimize your portfolio...`);
+        // Use the global loading context
+        startLoading(`Comparing ${selectedTokens.length} tokens to optimize your portfolio...`);
+
         // Dispatch event to indicate comparison has started
         window.dispatchEvent(new CustomEvent('comparisonStart'));
 
@@ -181,7 +184,8 @@ export function TokenPicker() {
             console.error("Comparison failed:", error);
             setError("Comparison failed. Please try again later.");
         } finally {
-            setIsComparing(false);
+            // Stop the global loading
+            stopLoading();
         }
     };
 
@@ -195,18 +199,6 @@ export function TokenPicker() {
 
     return (
         <div className="space-y-4">
-            {/* Loading Overlay */}
-            <LoadingOverlay
-                isVisible={isAnalyzing || isComparing}
-                message={loadingMessage}
-            />
-
-            {error && (
-                <div className="p-4 bg-red-50 text-red-700 rounded-lg dark:bg-red-900 dark:text-red-100">
-                    {error}
-                </div>
-            )}
-
             <div className="flex justify-between items-center">
                 <div className="space-y-1">
                     <div className="text-sm font-bold text-white-600 dark:text-white-400">

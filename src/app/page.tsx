@@ -5,12 +5,18 @@ import { TokenPicker } from "@/components/TokenPicker";
 import { ResultGrid } from "@/components/ResultGrid";
 import { ComparisonResults } from "@/components/ComparisonResults";
 import { useState, useEffect, useRef } from "react";
+import { LoadingProvider } from "@/context/LoadingContext";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { useLoading } from "@/context/LoadingContext";
 
-export default function Home() {
+// Create a wrapper component to use the context
+function DashboardContent() {
+  const { isLoading, loadingMessage } = useLoading();
   const [showDashboard, setShowDashboard] = useState(false);
   const [activeTab, setActiveTab] = useState("Coins");
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isDashboardLoading, setIsDashboardLoading] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Handle mouse movement for parallax effect
@@ -118,6 +124,18 @@ export default function Home() {
       };
     }
   }, [mousePosition, showDashboard]);
+
+  // Add this effect to handle dashboard loading
+  useEffect(() => {
+    if (showDashboard) {
+      // Simulate loading time or wait for actual data
+      const timer = setTimeout(() => {
+        setIsDashboardLoading(false);
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showDashboard]);
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -444,6 +462,9 @@ export default function Home() {
 
   return (
     <div className="grid grid-rows-[auto_1fr_auto] min-h-screen p-8 gap-8 font-[family-name:var(--font-geist-sans)] bg-[#0a0d12] text-white">
+      {/* Global loading overlay */}
+      <LoadingOverlay isVisible={isLoading || isDashboardLoading} message={loadingMessage || "Loading dashboard..."} />
+
       <header className="flex items-center justify-between">
       </header>
 
@@ -516,5 +537,14 @@ export default function Home() {
         <p>© 2025 degenAI • <a href="https://www.linkedin.com/in/pratinav-sharma-a8917398/" className="underline hover:text-[#4ade80]">Contact Us</a></p>
       </footer>
     </div>
+  );
+}
+
+// Main component that wraps everything with the provider
+export default function Home() {
+  return (
+    <LoadingProvider>
+      <DashboardContent />
+    </LoadingProvider>
   );
 }

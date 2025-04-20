@@ -160,3 +160,21 @@ body {
 .animate-float-4 {
   animation: float-4 5.5s ease-in-out infinite;
 }
+
+@keyframes loadingBar {
+  0% {
+    width: 0%;
+  }
+
+  50% {
+    width: 70%;
+  }
+
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-loadingBar {
+  animation: loadingBar 1.5s ease-in-out forwards;
+}
