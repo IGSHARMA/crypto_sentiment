@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 
 export type Token = {
     id: string;
@@ -31,9 +32,10 @@ export function TokenPicker() {
     const [selectedTokens, setSelectedTokens] = useState<string[]>([]);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    // Add new state for comparison
     const [isComparing, setIsComparing] = useState(false);
+
+    // Add loading message state
+    const [loadingMessage, setLoadingMessage] = useState("Processing your request...");
 
     const fetchTopTokens = async () => {
         setIsLoading(true);
@@ -89,6 +91,7 @@ export function TokenPicker() {
         if (selectedTokens.length === 0) return;
 
         setIsAnalyzing(true);
+        setLoadingMessage(`Analyzing ${selectedTokens.length} token${selectedTokens.length > 1 ? 's' : ''}...`);
         // Dispatch event to indicate analysis has started
         window.dispatchEvent(new CustomEvent('analysisStart'));
 
@@ -141,6 +144,7 @@ export function TokenPicker() {
         }
 
         setIsComparing(true);
+        setLoadingMessage(`Comparing ${selectedTokens.length} tokens to optimize your portfolio...`);
         // Dispatch event to indicate comparison has started
         window.dispatchEvent(new CustomEvent('comparisonStart'));
 
@@ -192,6 +196,12 @@ export function TokenPicker() {
 
     return (
         <div className="space-y-4">
+            {/* Loading Overlay */}
+            <LoadingOverlay
+                isVisible={isAnalyzing || isComparing}
+                message={loadingMessage}
+            />
+
             {error && (
                 <div className="p-4 bg-red-50 text-red-700 rounded-lg dark:bg-red-900 dark:text-red-100">
                     {error}
