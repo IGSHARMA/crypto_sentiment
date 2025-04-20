@@ -47,6 +47,9 @@ export function ResultGrid() {
     // Reference to the chat container
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
+    // Reference to the latest message container
+    const latestMessageRef = useRef<HTMLDivElement>(null);
+
     // Format timestamps after component has mounted (client-side only)
     useEffect(() => {
         hasMounted.current = true;
@@ -63,6 +66,14 @@ export function ResultGrid() {
     useEffect(() => {
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+
+        // Scroll to the latest message if it exists
+        if (latestMessageRef.current) {
+            latestMessageRef.current.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
         }
     }, [chatHistory]);
 
@@ -90,6 +101,14 @@ export function ResultGrid() {
 
             // Auto-open the analysis section when new results arrive
             setAnalysisOpen(true);
+
+            // Scroll to the AI section
+            setTimeout(() => {
+                document.getElementById('ai-assistant-section')?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 100);
         };
 
         // Listen for comparison results
@@ -108,6 +127,14 @@ export function ResultGrid() {
 
             // Auto-open the comparison section when new results arrive
             setComparisonOpen(true);
+
+            // Scroll to the AI section
+            setTimeout(() => {
+                document.getElementById('ai-assistant-section')?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 100);
         };
 
         // Add event listeners
@@ -132,172 +159,180 @@ export function ResultGrid() {
     return (
         <div className="space-y-8">
             {/* AI Assistant Chat Interface - Always visible */}
-            <div className="mt-8 space-y-6">
+            <div id="ai-assistant-section" className="mt-8 space-y-6">
                 <div className="border-b border-gray-200 dark:border-gray-700 pb-2">
-                    <h2 className="text-xl font-semibold">AI Assistant</h2>
+                    <h2 className="text-xl font-semibold">Trencher AI</h2>
                 </div>
 
                 <div
                     ref={chatContainerRef}
                     className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden max-h-[800px] overflow-y-auto"
                 >
-                    {chatHistory.map((item, index) => (
-                        <div key={index} className="p-4 border-b last:border-b-0 dark:border-gray-700">
-                            <div className="flex items-start">
-                                <div className="flex-shrink-0 mr-4">
-                                    <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-                                        AI
-                                    </div>
-                                </div>
-                                <div className="flex-1">
-                                    {item.type === 'welcome' ? (
-                                        <div>
-                                            <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                                                {/* Only show formatted time if component has mounted */}
-                                                {hasMounted.current ? `${formattedTimes[index]} - Welcome` : "Welcome"}
-                                            </div>
-                                            <p>{item.data.message}</p>
+                    {chatHistory.map((item, index) => {
+                        const isLatestMessage = index === chatHistory.length - 1;
+
+                        return (
+                            <div
+                                key={index}
+                                className="p-4 border-b last:border-b-0 dark:border-gray-700"
+                                ref={isLatestMessage ? latestMessageRef : null}
+                            >
+                                <div className="flex items-start">
+                                    <div className="flex-shrink-0 mr-4">
+                                        <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                                            AI
                                         </div>
-                                    ) : (
-                                        <>
-                                            <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                                                {/* Only show formatted time if component has mounted */}
-                                                {hasMounted.current
-                                                    ? `${formattedTimes[index]} - ${item.type === 'analysis' ? 'Token Analysis' : 'Portfolio Comparison'}`
-                                                    : item.type === 'analysis' ? 'Token Analysis' : 'Portfolio Comparison'
-                                                }
-                                            </div>
-
-                                            {item.type === 'analysis' && (
-                                                <div className="space-y-6">
-                                                    {item.data.map((token: AnalysisResult) => (
-                                                        <div key={token.symbol} className="border dark:border-gray-700 rounded-lg overflow-hidden">
-                                                            {/* Token Header */}
-                                                            <div className="bg-gray-100 dark:bg-gray-700 p-3 flex justify-between items-center">
-                                                                <div className="flex items-center">
-                                                                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center font-medium text-lg">
-                                                                        {token.symbol.charAt(0)}
-                                                                    </div>
-                                                                    <div className="ml-3">
-                                                                        <div className="font-bold text-lg">{token.symbol}</div>
-                                                                        <div className="text-xs text-gray-500 dark:text-gray-400">{token.name}</div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="text-right">
-                                                                    <div className="font-mono font-bold">${token.price?.toLocaleString()}</div>
-                                                                    <div className={`text-sm ${token.priceChange24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                                                        {token.priceChange24h >= 0 ? '+' : ''}{token.priceChange24h?.toFixed(2)}%
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Price Movement Explanation */}
-                                                            <div className="p-4 border-t dark:border-gray-700">
-                                                                <h3 className="font-medium mb-2">Price Movement Explanation</h3>
-                                                                <p>{token.explanation || "No price movement explanation available."}</p>
-                                                            </div>
-
-                                                            {/* Key Drivers */}
-                                                            {token.drivers && token.drivers.length > 0 && (
-                                                                <div className="p-4 border-t dark:border-gray-700">
-                                                                    <h3 className="font-medium mb-2">Key Drivers</h3>
-                                                                    <ul className="list-disc pl-5 space-y-1">
-                                                                        {token.drivers.map((driver: string, idx: number) => (
-                                                                            <li key={idx}>{driver}</li>
-                                                                        ))}
-                                                                    </ul>
-                                                                </div>
-                                                            )}
-
-                                                            {/* Recommendation */}
-                                                            <div className="p-4 border-t dark:border-gray-700">
-                                                                <h3 className="font-medium mb-3">Recommendation</h3>
-                                                                <div className="flex items-start">
-                                                                    <div className={`px-4 py-2 rounded-md text-sm font-medium mr-3 ${token.recommendation === "BUY"
-                                                                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-                                                                        : token.recommendation === "SELL"
-                                                                            ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
-                                                                            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
-                                                                        }`}>
-                                                                        {token.recommendation}
-                                                                    </div>
-                                                                    <p>{token.rationale || "No recommendation reason available."}</p>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Sources */}
-                                                            {token.sources && token.sources.length > 0 && (
-                                                                <div className="p-4 border-t dark:border-gray-700">
-                                                                    <h3 className="font-medium mb-2">Sources</h3>
-                                                                    <div className="space-y-3">
-                                                                        {token.sources.map((source: any, idx: number) => (
-                                                                            <a
-                                                                                key={idx}
-                                                                                href={source.url}
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                className="block text-blue-600 dark:text-blue-400 hover:underline"
-                                                                            >
-                                                                                {source.title || source.url}
-                                                                            </a>
-                                                                        ))}
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    ))}
+                                    </div>
+                                    <div className="flex-1">
+                                        {item.type === 'welcome' ? (
+                                            <div>
+                                                <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                                                    {/* Only show formatted time if component has mounted */}
+                                                    {hasMounted.current ? `${formattedTimes[index]} - Welcome` : "Welcome"}
                                                 </div>
-                                            )}
+                                                <p>{item.data.message}</p>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                                                    {/* Only show formatted time if component has mounted */}
+                                                    {hasMounted.current
+                                                        ? `${formattedTimes[index]} - ${item.type === 'analysis' ? 'Token Analysis' : 'Portfolio Comparison'}`
+                                                        : item.type === 'analysis' ? 'Token Analysis' : 'Portfolio Comparison'
+                                                    }
+                                                </div>
 
-                                            {item.type === 'comparison' && (
-                                                <div className="space-y-6">
-                                                    {/* Summary */}
-                                                    <div className="border dark:border-gray-700 rounded-lg overflow-hidden">
-                                                        <div className="bg-gray-100 dark:bg-gray-700 p-3">
-                                                            <h3 className="font-bold">Portfolio Summary</h3>
-                                                        </div>
-                                                        <div className="p-4">
-                                                            <p>{item.data.summary}</p>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Ranked Tokens */}
-                                                    {item.data.rankedTokens.map((token: any) => (
-                                                        <div
-                                                            key={token.symbol}
-                                                            className="border dark:border-gray-700 rounded-lg overflow-hidden"
-                                                        >
-                                                            <div className="bg-gray-100 dark:bg-gray-700 p-3 flex items-center">
-                                                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center font-bold text-lg">
-                                                                    {token.rank}
+                                                {item.type === 'analysis' && (
+                                                    <div className="space-y-6">
+                                                        {item.data.map((token: AnalysisResult) => (
+                                                            <div key={token.symbol} className="border dark:border-gray-700 rounded-lg overflow-hidden">
+                                                                {/* Token Header */}
+                                                                <div className="bg-gray-100 dark:bg-gray-700 p-3 flex justify-between items-center">
+                                                                    <div className="flex items-center">
+                                                                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center font-medium text-lg">
+                                                                            {token.symbol.charAt(0)}
+                                                                        </div>
+                                                                        <div className="ml-3">
+                                                                            <div className="font-bold text-lg">{token.symbol}</div>
+                                                                            <div className="text-xs text-gray-500 dark:text-gray-400">{token.name}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <div className="font-mono font-bold">${token.price?.toLocaleString()}</div>
+                                                                        <div className={`text-sm ${token.priceChange24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                                                            {token.priceChange24h >= 0 ? '+' : ''}{token.priceChange24h?.toFixed(2)}%
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                                <div className="ml-3 flex-grow">
-                                                                    <div className="flex items-center justify-between">
-                                                                        <h4 className="font-bold text-lg">{token.symbol}</h4>
-                                                                        <span className={`px-4 py-2 rounded-md text-sm font-medium ${token.decision === "BUY"
+
+                                                                {/* Price Movement Explanation */}
+                                                                <div className="p-4 border-t dark:border-gray-700">
+                                                                    <h3 className="font-medium mb-2">Price Movement Explanation</h3>
+                                                                    <p>{token.explanation || "No price movement explanation available."}</p>
+                                                                </div>
+
+                                                                {/* Key Drivers */}
+                                                                {token.drivers && token.drivers.length > 0 && (
+                                                                    <div className="p-4 border-t dark:border-gray-700">
+                                                                        <h3 className="font-medium mb-2">Key Drivers</h3>
+                                                                        <ul className="list-disc pl-5 space-y-1">
+                                                                            {token.drivers.map((driver: string, idx: number) => (
+                                                                                <li key={idx}>{driver}</li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Recommendation */}
+                                                                <div className="p-4 border-t dark:border-gray-700">
+                                                                    <h3 className="font-medium mb-3">Recommendation</h3>
+                                                                    <div className="flex items-start">
+                                                                        <div className={`px-4 py-2 rounded-md text-sm font-medium mr-3 ${token.recommendation === "BUY"
                                                                             ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-                                                                            : token.decision === "SELL"
+                                                                            : token.recommendation === "SELL"
                                                                                 ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
                                                                                 : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
                                                                             }`}>
-                                                                            {token.decision}
-                                                                        </span>
+                                                                            {token.recommendation}
+                                                                        </div>
+                                                                        <p>{token.rationale || "No recommendation reason available."}</p>
                                                                     </div>
                                                                 </div>
+
+                                                                {/* Sources */}
+                                                                {token.sources && token.sources.length > 0 && (
+                                                                    <div className="p-4 border-t dark:border-gray-700">
+                                                                        <h3 className="font-medium mb-2">Sources</h3>
+                                                                        <div className="space-y-3">
+                                                                            {token.sources.map((source: any, idx: number) => (
+                                                                                <a
+                                                                                    key={idx}
+                                                                                    href={source.url}
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    className="block text-blue-600 dark:text-blue-400 hover:underline"
+                                                                                >
+                                                                                    {source.title || source.url}
+                                                                                </a>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {item.type === 'comparison' && (
+                                                    <div className="space-y-6">
+                                                        {/* Summary */}
+                                                        <div className="border dark:border-gray-700 rounded-lg overflow-hidden">
+                                                            <div className="bg-gray-100 dark:bg-gray-700 p-3">
+                                                                <h3 className="font-bold">Portfolio Summary</h3>
                                                             </div>
                                                             <div className="p-4">
-                                                                <p>{token.rationale}</p>
+                                                                <p>{item.data.summary}</p>
                                                             </div>
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
+
+                                                        {/* Ranked Tokens */}
+                                                        {item.data.rankedTokens.map((token: any) => (
+                                                            <div
+                                                                key={token.symbol}
+                                                                className="border dark:border-gray-700 rounded-lg overflow-hidden"
+                                                            >
+                                                                <div className="bg-gray-100 dark:bg-gray-700 p-3 flex items-center">
+                                                                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center font-bold text-lg">
+                                                                        {token.rank}
+                                                                    </div>
+                                                                    <div className="ml-3 flex-grow">
+                                                                        <div className="flex items-center justify-between">
+                                                                            <h4 className="font-bold text-lg">{token.symbol}</h4>
+                                                                            <span className={`px-4 py-2 rounded-md text-sm font-medium ${token.decision === "BUY"
+                                                                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                                                                                : token.decision === "SELL"
+                                                                                    ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
+                                                                                    : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
+                                                                                }`}>
+                                                                                {token.decision}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="p-4">
+                                                                    <p>{token.rationale}</p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
