@@ -757,8 +757,8 @@ export async function POST(request: Request) {
         if (!tokens) {
             console.log('Cache miss in analyze endpoint. Fetching fresh data...');
             try {
-                // Use the exact Vercel deployment URL
-                const apiUrl = 'https://crypto-sentiment-psi.vercel.app/';
+                // Use the API endpoint instead of the website URL
+                const apiUrl = 'https://crypto-sentiment-psi.vercel.app/api/top25';
 
                 console.log(`Fetching from: ${apiUrl}`);
 
