@@ -29,9 +29,9 @@ export function TokenPicker() {
     const [isLoading, setIsLoading] = useState(true);
     const [tokens, setTokens] = useState<Token[]>([]);
     const [selectedTokens, setSelectedTokens] = useState<string[]>([]);
-    const [_isAnalyzing, _setIsAnalyzing] = useState(false);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [_isComparing, setIsComparing] = useState(false);
+    const [isComparing, setIsComparing] = useState(false);
 
     // Use the global loading context instead of local state
     const { startLoading, stopLoading } = useLoading();
@@ -89,6 +89,9 @@ export function TokenPicker() {
     const handleAnalyze = async () => {
         if (selectedTokens.length === 0) return;
 
+        // Set analyzing state to true
+        setIsAnalyzing(true);
+
         // Use the global loading context
         startLoading(`Analyzing ${selectedTokens.length} token${selectedTokens.length > 1 ? 's' : ''}...`);
 
@@ -135,6 +138,8 @@ export function TokenPicker() {
         } finally {
             // Stop the global loading
             stopLoading();
+            // Set analyzing state back to false
+            setIsAnalyzing(false);
         }
     };
 
@@ -325,31 +330,31 @@ export function TokenPicker() {
                                 className="absolute bg-[#252525]/20 h-full transition-all duration-200 ease-in-out rounded-full"
                                 style={{
                                     width: '50%',
-                                    left: _isAnalyzing ? '50%' : '0%',
-                                    transform: _isAnalyzing ? 'translateX(0)' : 'translateX(0)'
+                                    left: isAnalyzing ? '50%' : '0%',
+                                    transform: isAnalyzing ? 'translateX(0)' : 'translateX(0)'
                                 }}
                             />
 
                             <button
                                 onClick={handleCompareTokens}
-                                disabled={selectedTokens.length < 2 || _isComparing}
-                                className={`relative px-4 py-2 text-sm font-medium transition-colors ${!_isAnalyzing
+                                disabled={selectedTokens.length < 2 || isComparing}
+                                className={`relative px-4 py-2 text-sm font-medium transition-colors ${!isAnalyzing
                                     ? 'text-white'
                                     : 'text-gray-400 hover:text-white'
                                     }`}
                             >
-                                {_isComparing ? "Comparing..." : "Compare"}
+                                {isComparing ? "Comparing..." : "Compare"}
                             </button>
 
                             <button
                                 onClick={handleAnalyze}
-                                disabled={selectedTokens.length === 0 || _isAnalyzing}
-                                className={`relative px-4 py-2 text-sm font-medium transition-colors ${_isAnalyzing
+                                disabled={selectedTokens.length === 0 || isAnalyzing}
+                                className={`relative px-4 py-2 text-sm font-medium transition-colors ${isAnalyzing
                                     ? 'text-white'
                                     : 'text-gray-400 hover:text-white'
                                     }`}
                             >
-                                {_isAnalyzing ? "Analyzing..." : "Analyze"}
+                                {isAnalyzing ? "Analyzing..." : "Analyze"}
                             </button>
                         </div>
                     </div>
