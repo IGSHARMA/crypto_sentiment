@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { PortfolioRanking } from "@/components/TokenPicker";
 
 export function ComparisonResults() {
@@ -22,14 +21,13 @@ export function ComparisonResults() {
             window.removeEventListener('comparisonComplete', handleComparisonComplete as EventListener);
         };
     }, []);
-
     if (!comparisonData) {
         return (
             <div className="flex flex-col items-center justify-center py-12 text-center">
                 <h2 className="text-2xl font-bold mb-6 text-[#4ade80]">Features Coming Soon</h2>
 
                 <div className="max-w-2xl mb-8 text-gray-300">
-                    <p className="mb-6">We're working on exciting new features to enhance your crypto analysis experience.</p>
+                    <p className="mb-6">We&apos;re working on exciting new features to enhance your crypto analysis experience.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-5xl">

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { TokenCard } from "@/components/TokenCard";
 import { ChevronDown, ChevronUp } from "lucide-react"; // Import icons for the accordion
+import { PortfolioRanking } from "@/app/api/analyze/route";
 
 type AnalysisResult = {
     symbol: string;
@@ -13,15 +14,28 @@ type AnalysisResult = {
     drivers: string[];
     recommendation: "BUY" | "HOLD" | "SELL";
     rationale: string;
-    sources: any[];
+    sources: {
+        name: string;
+        url: string;
+        type: "news" | "social" | "technical" | "fundamental";
+        timestamp: string;
+    }[];
 };
 
 export function ResultGrid() {
-    const [results, setResults] = useState<AnalysisResult[]>([]);
-    const [loading, setLoading] = useState(false);
     const [chatHistory, setChatHistory] = useState<Array<{
         type: 'analysis' | 'comparison' | 'welcome';
-        data: any;
+        data: {
+            message?: string;
+            summary?: string;
+            rankedTokens?: Array<{
+                symbol: string;
+                rank: number;
+                decision: 'BUY' | 'SELL' | 'HOLD';
+                rationale: string;
+            }>;
+            analysisResults?: AnalysisResult[];
+        };
         timestamp: Date;
     }>>([
         // Add a default welcome message
@@ -80,21 +94,23 @@ export function ResultGrid() {
     useEffect(() => {
         // Listen for analysis start
         const handleAnalysisStart = () => {
-            setLoading(true);
+            // setLoading(true); - Remove this since we're not using loading state
         };
 
         // Listen for analysis results from TokenPicker
         const handleAnalysisComplete = (event: CustomEvent<AnalysisResult[]>) => {
             console.log("Analysis results received:", event.detail);
-            setResults(event.detail);
-            setLoading(false);
+            // setResults(event.detail); - Remove this since we're not using results state
+            // setLoading(false); - Remove this since we're not using loading state
 
             // Add to chat history
             setChatHistory(prev => [
                 ...prev,
                 {
                     type: 'analysis',
-                    data: event.detail,
+                    data: {
+                        analysisResults: event.detail
+                    },
                     timestamp: new Date()
                 }
             ]);
@@ -112,7 +128,7 @@ export function ResultGrid() {
         };
 
         // Listen for comparison results
-        const handleComparisonComplete = (event: CustomEvent<any>) => {
+        const handleComparisonComplete = (event: CustomEvent<PortfolioRanking>) => {
             console.log("Comparison results received in ResultGrid:", event.detail);
 
             // Add to chat history
@@ -204,7 +220,7 @@ export function ResultGrid() {
 
                                                 {item.type === 'analysis' && (
                                                     <div className="space-y-6">
-                                                        {item.data.map((token: AnalysisResult) => (
+                                                        {item.data.analysisResults?.map((token: AnalysisResult) => (
                                                             <div key={token.symbol} className="border dark:border-gray-700 rounded-lg overflow-hidden">
                                                                 {/* Token Header */}
                                                                 <div className="bg-gray-100 dark:bg-gray-700 p-3 flex justify-between items-center">
@@ -264,7 +280,12 @@ export function ResultGrid() {
                                                                     <div className="p-4 border-t dark:border-gray-700">
                                                                         <h3 className="font-medium mb-2">Sources</h3>
                                                                         <div className="space-y-3">
-                                                                            {token.sources.map((source: any, idx: number) => (
+                                                                            {token.sources.map((source: {
+                                                                                name: string;
+                                                                                url: string;
+                                                                                type: "news" | "social" | "technical" | "fundamental";
+                                                                                timestamp: string;
+                                                                            }, idx: number) => (
                                                                                 <a
                                                                                     key={idx}
                                                                                     href={source.url}
@@ -272,7 +293,7 @@ export function ResultGrid() {
                                                                                     rel="noopener noreferrer"
                                                                                     className="block text-blue-600 dark:text-blue-400 hover:underline"
                                                                                 >
-                                                                                    {source.title || source.url}
+                                                                                    {source.name || source.url}
                                                                                 </a>
                                                                             ))}
                                                                         </div>
@@ -296,7 +317,12 @@ export function ResultGrid() {
                                                         </div>
 
                                                         {/* Ranked Tokens */}
-                                                        {item.data.rankedTokens.map((token: any) => (
+                                                        {item.data.rankedTokens?.map((token: {
+                                                            symbol: string;
+                                                            rank: number;
+                                                            decision: 'BUY' | 'SELL' | 'HOLD';
+                                                            rationale: string;
+                                                        }) => (
                                                             <div
                                                                 key={token.symbol}
                                                                 className="border dark:border-gray-700 rounded-lg overflow-hidden"
@@ -368,8 +394,19 @@ export function ResultGrid() {
                                             {hasMounted.current ? formattedTimes[index] : "Welcome"}
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            {item.data.map((result: AnalysisResult) => (
-                                                <TokenCard key={result.symbol} result={result} />
+                                            {item.data.analysisResults?.map((result) => (
+                                                <TokenCard
+                                                    key={result.symbol}
+                                                    result={{
+                                                        ...result,
+                                                        // Transform sources to match TokenCard's expected format
+                                                        sources: result.sources.map(source => ({
+                                                            title: source.name,
+                                                            url: source.url,
+                                                            summary: source.type
+                                                        }))
+                                                    }}
+                                                />
                                             ))}
                                         </div>
                                     </div>
@@ -429,7 +466,12 @@ export function ResultGrid() {
                                             <div>
                                                 <h3 className="font-medium mb-3">Ranked Recommendations</h3>
                                                 <div className="space-y-3">
-                                                    {item.data.rankedTokens.map((token: any) => (
+                                                    {item.data.rankedTokens?.map((token: {
+                                                        symbol: string;
+                                                        rank: number;
+                                                        decision: 'BUY' | 'SELL' | 'HOLD';
+                                                        rationale: string;
+                                                    }) => (
                                                         <div
                                                             key={token.symbol}
                                                             className="border rounded-lg p-3 flex items-center dark:border-gray-700"

@@ -391,8 +391,8 @@ async function fetchTopTwitterPosts(symbol: string): Promise<TwitterPost[]> {
 }
 
 // Add this helper function
-function isTwitterPost(post: any): post is TwitterPost {
-    return 'user_screen_name' in post;
+function isTwitterPost(post: unknown): post is TwitterPost {
+    return typeof post === 'object' && post !== null && 'user_screen_name' in post;
 }
 
 // Sequential LLM pipeline for token analysis

@@ -6,7 +6,7 @@ type CacheEntry<T> = {
 };
 
 class Cache {
-    private cache: Map<string, CacheEntry<any>> = new Map();
+    private cache: Map<string, CacheEntry<unknown>> = new Map();
 
     async get<T>(key: string): Promise<T | null> {
         const entry = this.cache.get(key);

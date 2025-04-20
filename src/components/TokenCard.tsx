@@ -1,10 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
-
 type AnalysisResult = {
     symbol: string;
     name: string;
@@ -26,8 +21,6 @@ type TokenCardProps = {
 };
 
 export function TokenCard({ result }: TokenCardProps) {
-    const [isOpen, setIsOpen] = useState(false);
-
     const recommendationColor = {
         BUY: "bg-[#4ade80]/20 text-[#4ade80]",
         HOLD: "bg-yellow-500/20 text-yellow-400",

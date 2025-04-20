@@ -61,7 +61,6 @@ async function fetchFromCoinGecko(): Promise<Token[]> {
 export async function GET() {
     // Try to get data from cache first
     let tokens = await cache.get<Token[]>(CACHE_KEY);
-
     if (!tokens) {
         try {
             console.log('Cache miss. Fetching fresh data from CoinGecko');
@@ -69,7 +68,7 @@ export async function GET() {
 
             // Store in cache for 24 hours
             await cache.set(CACHE_KEY, tokens, CACHE_TTL);
-        } catch (error) {
+        } catch (_error) {
             return NextResponse.json(
                 { error: 'Failed to fetch token data' },
                 { status: 500 }

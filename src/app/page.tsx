@@ -33,28 +33,9 @@ interface Liquidity {
   quote: string;
 }
 
-interface DexPair {
-  chainId: string;
-  dexId: string;
-  url: string;
-  pairAddress: string;
-  baseToken: TokenInfo;
-  quoteToken: TokenInfo;
-  priceUsd: string;
-  priceNative: string;
-  txns: any;
-  volume: Volume;
-  priceChange: PriceChange;
-  liquidity: Liquidity;
-  fdv: string;
-  pairCreatedAt: number;
-}
-
 export default function Home() {
   const [showDashboard, setShowDashboard] = useState(false);
   const [activeTab, setActiveTab] = useState("Coins");
-  const [dexData, setDexData] = useState<DexPair[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isLoaded, setIsLoaded] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -93,7 +74,6 @@ export default function Home() {
       window.addEventListener("resize", setCanvasDimensions);
 
       // Grid properties
-      const gridSize = 30;
       const gridSpacing = 50;
       let time = 0;
 
@@ -165,27 +145,6 @@ export default function Home() {
       };
     }
   }, [mousePosition, showDashboard]);
-
-  useEffect(() => {
-    if (activeTab === "DexScan" && showDashboard) {
-      fetchDexScreenerData();
-    }
-  }, [activeTab, showDashboard]);
-
-  const fetchDexScreenerData = async () => {
-    setIsLoading(true);
-    try {
-      // You'll need to replace this with your actual API endpoint
-      // This could be a direct call to DEX Screener API or your backend proxy
-      const response = await fetch("https://api.dexscreener.com/latest/dex/search?q=USDC");
-      const data = await response.json();
-      setDexData(data.pairs || []);
-    } catch (error) {
-      console.error("Error fetching DEX Screener data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const renderTabContent = () => {
     switch (activeTab) {
