@@ -383,7 +383,7 @@ export function ResultGrid() {
                     <div className="p-4">
                         {analysisHistory.length === 0 ? (
                             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                                No analysis results yet. Select tokens above and click "Analyze" to see results here.
+                                No analysis results yet. Select tokens above and click &quot;Analyze&quot; to see results here.
                             </div>
                         ) : (
                             <div className="space-y-6">
@@ -438,7 +438,7 @@ export function ResultGrid() {
                     <div className="p-4">
                         {comparisonHistory.length === 0 ? (
                             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                                No comparison results yet. Select multiple tokens above and click "Compare" to see results here.
+                                No comparison results yet. Select multiple tokens above and click &quot;Compare&quot; to see results here.
                             </div>
                         ) : (
                             <div className="space-y-6">

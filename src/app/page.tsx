@@ -6,33 +6,6 @@ import { ResultGrid } from "@/components/ResultGrid";
 import { ComparisonResults } from "@/components/ComparisonResults";
 import { useState, useEffect, useRef } from "react";
 
-// Define interfaces for DEX Screener data
-interface TokenInfo {
-  address: string;
-  name: string;
-  symbol: string;
-}
-
-interface PriceChange {
-  h24: string;
-  h6: string;
-  h1: string;
-  m5: string;
-}
-
-interface Volume {
-  h24: string;
-  h6: string;
-  h1: string;
-  m5: string;
-}
-
-interface Liquidity {
-  usd: string;
-  base: string;
-  quote: string;
-}
-
 export default function Home() {
   const [showDashboard, setShowDashboard] = useState(false);
   const [activeTab, setActiveTab] = useState("Coins");
