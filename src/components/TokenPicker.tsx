@@ -4,14 +4,6 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-} from "@/components/ui/dialog";
 
 export type Token = {
     id: string;
@@ -42,8 +34,6 @@ export function TokenPicker() {
 
     // Add new state for comparison
     const [isComparing, setIsComparing] = useState(false);
-    const [comparisonOpen, setComparisonOpen] = useState(false);
-    const [comparisonResult, setComparisonResult] = useState<PortfolioRanking | null>(null);
 
     const fetchTopTokens = async () => {
         setIsLoading(true);
@@ -127,19 +117,15 @@ export function TokenPicker() {
             console.log("Analysis results:", results);
 
             // Make sure we're dispatching the correct data structure
-            // The ResultGrid is expecting an array of AnalysisResult objects
             if (results && results.tokens) {
                 // Dispatch event with the tokens array for ResultGrid to pick up
                 window.dispatchEvent(new CustomEvent('analysisComplete', {
                     detail: results.tokens
                 }));
-
-                setSelectedTokens([]);
-            } else {
-                console.error("Unexpected response format:", results);
-                setError("Analysis returned an unexpected format. Please try again.");
             }
 
+            // Clear selected tokens after successful analysis - moved outside the if block
+            setSelectedTokens([]);
         } catch (error) {
             console.error("Analysis failed:", error);
             setError("Analysis failed. Please try again later.");
@@ -148,13 +134,15 @@ export function TokenPicker() {
         }
     };
 
-    // Add new function to handle token comparison
     const handleCompareTokens = async () => {
-        if (selectedTokens.length < 2) return;
+        if (selectedTokens.length < 2) {
+            setError("Please select at least 2 tokens to compare.");
+            return;
+        }
 
         setIsComparing(true);
-        setComparisonOpen(true);
-        setError(null);
+        // Dispatch event to indicate comparison has started
+        window.dispatchEvent(new CustomEvent('comparisonStart'));
 
         try {
             // Find the full token objects for the selected IDs
@@ -178,13 +166,14 @@ export function TokenPicker() {
             }
 
             const results = await response.json();
-            setComparisonResult(results.portfolio);
 
-            // Dispatch event with comparison results for ComparisonResults component
+            // Dispatch event with comparison results
             window.dispatchEvent(new CustomEvent('comparisonComplete', {
                 detail: results.portfolio
             }));
 
+            // Clear selected tokens after successful comparison - ensure this runs
+            setSelectedTokens([]);
         } catch (error) {
             console.error("Comparison failed:", error);
             setError("Comparison failed. Please try again later.");
@@ -351,73 +340,6 @@ export function TokenPicker() {
                     </div>
                 </div>
             </div>
-
-            {/* Comparison dialog */}
-            <Dialog open={comparisonOpen} onOpenChange={setComparisonOpen}>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>Portfolio Comparison</DialogTitle>
-                        <DialogDescription>
-                            Ranked comparison of your selected tokens
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    {isComparing ? (
-                        <div className="space-y-4 py-4">
-                            <Skeleton className="h-4 w-full" />
-                            <Skeleton className="h-20 w-full" />
-                            <div className="space-y-2">
-                                {Array.from({ length: selectedTokens.length }).map((_, i) => (
-                                    <Skeleton key={i} className="h-16 w-full" />
-                                ))}
-                            </div>
-                        </div>
-                    ) : comparisonResult ? (
-                        <div className="space-y-6">
-                            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                                <h3 className="font-medium mb-2">Portfolio Summary</h3>
-                                <p>{comparisonResult.summary}</p>
-                            </div>
-
-                            <div>
-                                <h3 className="font-medium mb-3">Ranked Recommendations</h3>
-                                <div className="space-y-3">
-                                    {comparisonResult.rankedTokens.map((token) => (
-                                        <div
-                                            key={token.symbol}
-                                            className="border rounded-lg p-3 flex items-center dark:border-gray-700"
-                                        >
-                                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-bold">
-                                                {token.rank}
-                                            </div>
-                                            <div className="ml-3 flex-grow">
-                                                <div className="flex items-center justify-between">
-                                                    <h4 className="font-medium">{token.symbol}</h4>
-                                                    <span className={`px-2 py-1 text-xs rounded-full font-medium ${token.decision === "BUY"
-                                                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-                                                        : token.decision === "SELL"
-                                                            ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
-                                                            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
-                                                        }`}>
-                                                        {token.decision}
-                                                    </span>
-                                                </div>
-                                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{token.rationale}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="py-6 text-center text-gray-500">No comparison data available</div>
-                    )}
-
-                    <DialogFooter>
-                        <Button onClick={() => setComparisonOpen(false)}>Close</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 } 

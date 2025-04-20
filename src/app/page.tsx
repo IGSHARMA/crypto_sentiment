@@ -210,12 +210,10 @@ export default function Home() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold mb-4">Analysis Results</h2>
           <ResultGrid />
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold mb-4">Comparison Results</h2>
           <ComparisonResults />
         </section>
       </main>
