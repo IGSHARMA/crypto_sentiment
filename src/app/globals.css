@@ -24,3 +24,111 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@layer utilities {
+  .animation-delay-150 {
+    animation-delay: 150ms;
+  }
+
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+}
+
+/* Add these animation styles for the landing page */
+@keyframes ticker {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+
+.ticker-wrap {
+  width: 100%;
+  overflow: hidden;
+  height: 3rem;
+  padding: 0.75rem 0;
+  box-sizing: content-box;
+}
+
+.ticker {
+  display: inline-flex;
+  white-space: nowrap;
+  padding-right: 100%;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  animation-name: ticker;
+  animation-duration: 30s;
+}
+
+.ticker-item {
+  display: inline-flex;
+  padding: 0 2rem;
+}
+
+@keyframes float-1 {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(10px, -10px);
+  }
+}
+
+@keyframes float-2 {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(-5px, 10px);
+  }
+}
+
+@keyframes float-3 {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(-8px, -15px);
+  }
+}
+
+@keyframes float-4 {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(10px, 12px);
+  }
+}
+
+.animate-float-1 {
+  animation: float-1 5s ease-in-out infinite;
+}
+
+.animate-float-2 {
+  animation: float-2 6s ease-in-out infinite;
+}
+
+.animate-float-3 {
+  animation: float-3 7s ease-in-out infinite;
+}
+
+.animate-float-4 {
+  animation: float-4 5.5s ease-in-out infinite;
+}

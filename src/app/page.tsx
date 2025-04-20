@@ -4,7 +4,7 @@ import Image from "next/image";
 import { TokenPicker } from "@/components/TokenPicker";
 import { ResultGrid } from "@/components/ResultGrid";
 import { ComparisonResults } from "@/components/ComparisonResults";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // Define interfaces for DEX Screener data
 interface TokenInfo {
@@ -51,15 +51,126 @@ interface DexPair {
 }
 
 export default function Home() {
+  const [showDashboard, setShowDashboard] = useState(false);
   const [activeTab, setActiveTab] = useState("Coins");
   const [dexData, setDexData] = useState<DexPair[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isLoaded, setIsLoaded] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Handle mouse movement for parallax effect
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({
+        x: e.clientX,
+        y: e.clientY,
+      });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
+
+  // Canvas animation for the grid background
+  useEffect(() => {
+    if (!showDashboard) {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      // Set canvas dimensions
+      const setCanvasDimensions = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      };
+
+      setCanvasDimensions();
+      window.addEventListener("resize", setCanvasDimensions);
+
+      // Grid properties
+      const gridSize = 30;
+      const gridSpacing = 50;
+      let time = 0;
+
+      // Animation function
+      const animate = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw grid
+        ctx.strokeStyle = "rgba(74, 222, 128, 0.1)";
+        ctx.lineWidth = 1;
+
+        for (let x = 0; x < canvas.width + gridSpacing; x += gridSpacing) {
+          for (let y = 0; y < canvas.height + gridSpacing; y += gridSpacing) {
+            // Calculate wave effect
+            const distX = mousePosition.x - x;
+            const distY = mousePosition.y - y;
+            const distance = Math.sqrt(distX * distX + distY * distY);
+            const maxDistance = 300;
+
+            // Wave effect based on mouse position and time
+            const waveX = Math.sin(distance * 0.01 - time * 0.5) * 5;
+            const waveY = Math.cos(distance * 0.01 - time * 0.5) * 5;
+
+            const influence = Math.max(0, 1 - distance / maxDistance);
+            const offsetX = waveX * influence;
+            const offsetY = waveY * influence;
+
+            ctx.beginPath();
+            ctx.arc(x + offsetX, y + offsetY, 1, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(74, 222, 128, ${0.1 + influence * 0.3})`;
+            ctx.fill();
+
+            if (Math.random() < 0.001) {
+              ctx.beginPath();
+              ctx.arc(x + offsetX, y + offsetY, Math.random() * 3 + 1, 0, Math.PI * 2);
+              ctx.fillStyle = "rgba(74, 222, 128, 0.8)";
+              ctx.fill();
+            }
+          }
+        }
+
+        // Floating crypto symbols
+        const symbols = [
+          { x: canvas.width * 0.2, y: canvas.height * 0.3, symbol: "₿", color: "rgba(247, 147, 26, 0.5)" },
+          { x: canvas.width * 0.8, y: canvas.height * 0.7, symbol: "Ξ", color: "rgba(98, 126, 234, 0.5)" },
+          { x: canvas.width * 0.3, y: canvas.height * 0.8, symbol: "◎", color: "rgba(153, 69, 255, 0.5)" },
+          { x: canvas.width * 0.7, y: canvas.height * 0.2, symbol: "₮", color: "rgba(38, 161, 123, 0.5)" },
+        ];
+
+        symbols.forEach((s, i) => {
+          ctx.font = "40px Arial";
+          ctx.fillStyle = s.color;
+          const offsetY = Math.sin(time * 0.5 + i) * 10;
+          ctx.fillText(s.symbol, s.x + Math.sin(time * 0.3 + i * 2) * 20, s.y + offsetY);
+        });
+
+        time += 0.01;
+        requestAnimationFrame(animate);
+      };
+
+      const animationId = requestAnimationFrame(animate);
+
+      // Set loaded state after a short delay
+      setTimeout(() => setIsLoaded(true), 500);
+
+      return () => {
+        window.removeEventListener("resize", setCanvasDimensions);
+        cancelAnimationFrame(animationId);
+      };
+    }
+  }, [mousePosition, showDashboard]);
 
   useEffect(() => {
-    if (activeTab === "DexScan") {
+    if (activeTab === "DexScan" && showDashboard) {
       fetchDexScreenerData();
     }
-  }, [activeTab]);
+  }, [activeTab, showDashboard]);
 
   const fetchDexScreenerData = async () => {
     setIsLoading(true);
@@ -84,6 +195,8 @@ export default function Home() {
             <TokenPicker />
           </>
         );
+      // Commenting out other tabs for now
+      /*
       case "DexScan":
         return (
           <>
@@ -151,6 +264,7 @@ export default function Home() {
             )}
           </>
         );
+      */
       default:
         return (
           <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-center">
@@ -159,6 +273,212 @@ export default function Home() {
         );
     }
   };
+
+  if (!showDashboard) {
+    return (
+      <div className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-[#0a0d12]">
+        {/* Background canvas */}
+        <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0d12]/80 to-[#0a0d12]" />
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center">
+          <div
+            className={`mb-2 flex items-center transition-opacity duration-800 ${isLoaded ? 'opacity-100' : 'opacity-0 translate-y-5'}`}
+            style={{ transitionDelay: '200ms' }}
+          >
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#1a1f29]">
+              <Image
+                src="/logo.svg"
+                alt="Portfolio-Scout Logo"
+                width={28}
+                height={28}
+                className="dark:invert"
+              />
+            </div>
+            <h1 className="ml-3 text-3xl font-bold text-white">Portfolio-Scout</h1>
+          </div>
+
+          <h2
+            className={`mb-6 text-5xl font-bold leading-tight tracking-tight text-white md:text-6xl transition-opacity duration-800 ${isLoaded ? 'opacity-100' : 'opacity-0 translate-y-5'}`}
+            style={{ transitionDelay: '400ms' }}
+          >
+            The Future of <span className="text-[#4ade80]">Crypto</span> Analysis
+          </h2>
+
+          <p
+            className={`mb-8 max-w-2xl text-lg text-gray-400 transition-opacity duration-800 ${isLoaded ? 'opacity-100' : 'opacity-0 translate-y-5'}`}
+            style={{ transitionDelay: '600ms' }}
+          >
+            Advanced analytics, real-time data, and AI-powered insights to navigate the crypto market with confidence.
+          </p>
+
+          <div
+            className={`relative transition-all duration-500 ${isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}
+            style={{ transitionDelay: '800ms' }}
+          >
+            <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#4ade80] to-[#3b82f6] opacity-75 blur-sm group-hover:opacity-100" />
+            <button
+              onClick={() => setShowDashboard(true)}
+              className="relative bg-[#1a1f29] px-8 py-6 text-lg font-semibold text-white hover:bg-[#2a2f3a] rounded-lg flex items-center"
+            >
+              Enter Dashboard
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="ml-2 h-5 w-5"
+              >
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Floating crypto icons */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className={`transition-opacity duration-1000 ${isLoaded ? 'opacity-15' : 'opacity-0'}`} style={{ transitionDelay: '1000ms' }}>
+              <div
+                className="absolute left-[15%] top-[20%] animate-float-1"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-orange-500"
+                >
+                  <path d="M11.767 19.089c4.924.868 6.14-6.025 1.216-6.894m-1.216 6.894L5.86 18.047m5.908 1.042-.347 1.97m1.563-8.864c4.924.869 6.14-6.025 1.215-6.893m-1.215 6.893-3.94-.694m5.155-6.2L8.29 4.26m5.908 1.042.348-1.97M7.48 20.364l3.126-17.727" />
+                </svg>
+              </div>
+
+              <div
+                className="absolute right-[20%] top-[25%] animate-float-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="56"
+                  height="56"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-blue-500"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 6v12" />
+                  <path d="M16 10H8" />
+                </svg>
+              </div>
+
+              <div
+                className="absolute bottom-[25%] left-[25%] animate-float-3"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-500/10 text-2xl font-bold text-purple-500">
+                  ◎
+                </div>
+              </div>
+
+              <div
+                className="absolute bottom-[30%] right-[15%] animate-float-4"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-500/10 text-xl font-bold text-yellow-500">
+                  BNB
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Price ticker at bottom */}
+        <div
+          className={`absolute bottom-0 left-0 right-0 overflow-hidden border-t border-[#2a2f3a] bg-[#0e1217]/80 backdrop-blur-sm transition-all duration-800 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
+          style={{ transitionDelay: '1000ms' }}
+        >
+          <div className="ticker-wrap">
+            <div className="ticker">
+              <div className="ticker-item flex items-center">
+                <span className="mr-1 text-orange-500">₿</span>
+                <span className="font-medium">BTC</span>
+                <span className="ml-2 text-sm text-gray-400">$85,234.78</span>
+                <span className="ml-2 text-xs text-green-500">+0.93%</span>
+              </div>
+              <div className="ticker-item flex items-center">
+                <span className="mr-1 text-blue-500">Ξ</span>
+                <span className="font-medium">ETH</span>
+                <span className="ml-2 text-sm text-gray-400">$1,608.36</span>
+                <span className="ml-2 text-xs text-green-500">+1.47%</span>
+              </div>
+              <div className="ticker-item flex items-center">
+                <span className="mr-1 text-purple-500">◎</span>
+                <span className="font-medium">SOL</span>
+                <span className="ml-2 text-sm text-gray-400">$139.43</span>
+                <span className="ml-2 text-xs text-green-500">+5.0%</span>
+              </div>
+              <div className="ticker-item flex items-center">
+                <span className="mr-1 text-blue-400">✕</span>
+                <span className="font-medium">XRP</span>
+                <span className="ml-2 text-sm text-gray-400">$2.08</span>
+                <span className="ml-2 text-xs text-green-500">+1.1%</span>
+              </div>
+              <div className="ticker-item flex items-center">
+                <span className="mr-1 text-yellow-500">BNB</span>
+                <span className="font-medium">BNB</span>
+                <span className="ml-2 text-sm text-gray-400">$589.98</span>
+                <span className="ml-2 text-xs text-red-500">-0.6%</span>
+              </div>
+              <div className="ticker-item flex items-center">
+                <span className="mr-1 text-green-500">₮</span>
+                <span className="font-medium">USDT</span>
+                <span className="ml-2 text-sm text-gray-400">$1.00</span>
+                <span className="ml-2 text-xs text-red-500">-0.01%</span>
+              </div>
+              {/* Repeat for infinite scroll effect */}
+              <div className="ticker-item flex items-center">
+                <span className="mr-1 text-orange-500">₿</span>
+                <span className="font-medium">BTC</span>
+                <span className="ml-2 text-sm text-gray-400">$85,234.78</span>
+                <span className="ml-2 text-xs text-green-500">+0.93%</span>
+              </div>
+              <div className="ticker-item flex items-center">
+                <span className="mr-1 text-blue-500">Ξ</span>
+                <span className="font-medium">ETH</span>
+                <span className="ml-2 text-sm text-gray-400">$1,608.36</span>
+                <span className="ml-2 text-xs text-green-500">+1.47%</span>
+              </div>
+              <div className="ticker-item flex items-center">
+                <span className="mr-1 text-purple-500">◎</span>
+                <span className="font-medium">SOL</span>
+                <span className="ml-2 text-sm text-gray-400">$139.43</span>
+                <span className="ml-2 text-xs text-green-500">+5.0%</span>
+              </div>
+              <div className="ticker-item flex items-center">
+                <span className="mr-1 text-blue-400">✕</span>
+                <span className="font-medium">XRP</span>
+                <span className="ml-2 text-sm text-gray-400">$2.08</span>
+                <span className="ml-2 text-xs text-green-500">+1.1%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-rows-[auto_1fr_auto] min-h-screen p-8 gap-8 font-[family-name:var(--font-geist-sans)]">
@@ -182,27 +502,29 @@ export default function Home() {
         <section className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
           <div className="mb-6">
             <div className="flex overflow-x-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-              {["Coins", "DexScan", "Top", "Trending", "New", "Gainers", "Most Visited"].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 rounded-md font-medium flex items-center ${activeTab === tab
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                    }`}
-                >
-                  <span className="mr-2">
-                    {tab === "Coins" && "🪙"}
-                    {tab === "DexScan" && "🔍"}
-                    {tab === "Top" && "📈"}
-                    {tab === "Trending" && "🔥"}
-                    {tab === "New" && "✨"}
-                    {tab === "Gainers" && "📊"}
-                    {tab === "Most Visited" && "👁️"}
-                  </span>
-                  {tab}
-                </button>
-              ))}
+              <button
+                key="Coins"
+                onClick={() => setActiveTab("Coins")}
+                className={`px-4 py-2 rounded-md font-medium flex items-center ${activeTab === "Coins"
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  }`}
+              >
+                <span className="mr-2">🪙</span>
+                Coins
+              </button>
+              <button
+                key="DexScan"
+                onClick={() => setActiveTab("DexScan")}
+                className={`px-4 py-2 rounded-md font-medium flex items-center ${activeTab === "DexScan"
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  }`}
+              >
+                <span className="mr-2">🔍</span>
+                DexScan
+              </button>
+              {/* Comment out other tabs */}
             </div>
           </div>
 
