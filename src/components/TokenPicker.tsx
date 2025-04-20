@@ -189,7 +189,7 @@ export function TokenPicker() {
     if (isLoading) {
         return (
             <div className="flex justify-center p-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#252525]"></div>
             </div>
         );
     }
@@ -248,7 +248,7 @@ export function TokenPicker() {
                                     key={token.id}
                                     className={cn(
                                         "hover:bg-gray-50 dark:hover:bg-gray-800",
-                                        isSelected && "bg-blue-50/50 dark:bg-blue-900/20"
+                                        isSelected && "bg-[#252525]/50 dark:bg-[#252525]/20"
                                     )}
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{index + 1}</td>
@@ -289,7 +289,7 @@ export function TokenPicker() {
                                                 className={cn(
                                                     "w-6 h-6 rounded border flex items-center justify-center",
                                                     isSelected
-                                                        ? "bg-blue-500 border-blue-500 text-white"
+                                                        ? "bg-[#252525] border-[#252525] text-[#D1D1D1]"
                                                         : "border-gray-300 dark:border-gray-600"
                                                 )}
                                                 disabled={selectedTokens.length >= 10 && !isSelected}
@@ -317,7 +317,7 @@ export function TokenPicker() {
 
                         <div className="relative flex rounded-full overflow-hidden border border-gray-700">
                             <div
-                                className="absolute bg-blue-600/20 h-full transition-all duration-200 ease-in-out rounded-full"
+                                className="absolute bg-[#252525]/20 h-full transition-all duration-200 ease-in-out rounded-full"
                                 style={{
                                     width: '50%',
                                     left: isAnalyzing ? '50%' : '0%',

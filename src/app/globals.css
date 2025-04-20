@@ -1,11 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0d12;
+  --foreground: #ffffff;
+  --card: #080808;
+  --card-foreground: #ffffff;
+  --border: #222222;
+  --primary: #4ade80;
+  --primary-foreground: #0a0d12;
+  --secondary: #222222;
+  --secondary-foreground: #ffffff;
+  --muted: #222222;
+  --muted-foreground: #a1a1aa;
+  --accent: #3b82f6;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
 }
 
-@theme inline {
+:root {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -46,27 +59,42 @@ body {
   }
 }
 
+/* Ticker animation for price feed - improved version */
 .ticker-wrap {
   width: 100%;
   overflow: hidden;
   height: 3rem;
   padding: 0.75rem 0;
   box-sizing: content-box;
+  background-color: rgba(14, 18, 23, 0.8);
+  backdrop-filter: blur(8px);
 }
 
 .ticker {
   display: inline-flex;
   white-space: nowrap;
-  padding-right: 100%;
+  padding-right: 0;
+  /* Remove padding that causes gap */
   animation-iteration-count: infinite;
   animation-timing-function: linear;
   animation-name: ticker;
   animation-duration: 30s;
 }
 
+/* Create a second ticker instance that follows the first one */
+.ticker::after {
+  content: "";
+  display: inline-flex;
+  white-space: nowrap;
+  padding-left: 100%;
+  /* This ensures continuous flow */
+}
+
 .ticker-item {
   display: inline-flex;
-  padding: 0 2rem;
+  padding: 0 1.5rem;
+  /* Slightly reduce padding */
+  align-items: center;
 }
 
 @keyframes float-1 {

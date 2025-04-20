@@ -29,106 +29,64 @@ export function TokenCard({ result }: TokenCardProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     const recommendationColor = {
-        BUY: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
-        HOLD: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
-        SELL: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
+        BUY: "bg-[#4ade80]/20 text-[#4ade80]",
+        HOLD: "bg-yellow-500/20 text-yellow-400",
+        SELL: "bg-red-500/20 text-red-400"
     }[result.recommendation];
 
     const priceChangeColor = result.priceChange24h >= 0
-        ? "text-green-600"
-        : "text-red-600";
+        ? "text-[#4ade80]"
+        : "text-red-400";
 
     return (
         <>
-            <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <div className="p-4 border-b">
+            <div className="bg-[#080808] border border-[#222222] rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div className="p-4 border-b border-[#222222]">
                     <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center font-medium">
+                        <div className="flex items-center">
+                            <div className="w-10 h-10 rounded-full bg-[#111111] flex items-center justify-center text-lg font-bold">
                                 {result.symbol.charAt(0)}
                             </div>
-                            <div>
-                                <h3 className="font-bold">{result.symbol}</h3>
-                                <p className="text-sm text-gray-500">{result.name}</p>
+                            <div className="ml-3">
+                                <h3 className="font-medium">{result.symbol}</h3>
+                                <p className="text-sm text-gray-400">{result.name}</p>
                             </div>
                         </div>
-                        <div className="text-right">
-                            <div className="font-mono font-medium">${result.price.toLocaleString()}</div>
-                            <div className={cn("text-sm font-medium", priceChangeColor)}>
-                                {result.priceChange24h >= 0 ? "+" : ""}
-                                {result.priceChange24h.toFixed(1)}%
-                            </div>
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${recommendationColor}`}>
+                            {result.recommendation}
                         </div>
                     </div>
                 </div>
 
                 <div className="p-4">
-                    <div className="mb-4">
-                        <h4 className="text-sm font-medium text-gray-500 mb-2">24h Analysis</h4>
-                        <p className="text-sm line-clamp-3">{result.explanation}</p>
+                    <div className="flex justify-between mb-2">
+                        <span className="text-gray-400">Price</span>
+                        <span className="font-mono font-medium">${result.price.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between mb-4">
+                        <span className="text-gray-400">24h Change</span>
+                        <span className={priceChangeColor}>
+                            {result.priceChange24h >= 0 ? "+" : ""}{result.priceChange24h.toFixed(2)}%
+                        </span>
                     </div>
 
-                    <div className="flex justify-between items-center">
-                        <div className={cn("px-3 py-1 rounded-full text-sm font-medium", recommendationColor)}>
-                            {result.recommendation}
-                        </div>
-                        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                            <DialogTrigger asChild>
-                                <Button variant="outline" size="sm">View Details</Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                                <div className="space-y-4">
-                                    <h2 className="text-xl font-semibold">{result.symbol} ({result.name}) Analysis</h2>
+                    <div className="mb-4">
+                        <h4 className="text-sm font-medium mb-2">Analysis</h4>
+                        <p className="text-sm text-gray-300">{result.explanation}</p>
+                    </div>
 
-                                    <div>
-                                        <h4 className="font-medium mb-2">Price Movement Explanation</h4>
-                                        <p className="text-sm">{result.explanation}</p>
-                                    </div>
+                    <div className="mb-4">
+                        <h4 className="text-sm font-medium mb-2">Key Drivers</h4>
+                        <ul className="text-sm text-gray-300 list-disc pl-5 space-y-1">
+                            {result.drivers.map((driver, index) => (
+                                <li key={index}>{driver}</li>
+                            ))}
+                        </ul>
+                    </div>
 
-                                    <div>
-                                        <h4 className="font-medium mb-2">Key Drivers</h4>
-                                        <ul className="list-disc pl-5 text-sm space-y-1">
-                                            {result.drivers.map((driver, i) => (
-                                                <li key={i}>{driver}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-
-                                    <div>
-                                        <h4 className="font-medium mb-2">Recommendation</h4>
-                                        <div className="flex items-center gap-3">
-                                            <div className={cn("px-3 py-1 rounded-full text-sm font-medium", recommendationColor)}>
-                                                {result.recommendation}
-                                            </div>
-                                            <p className="text-sm">{result.rationale}</p>
-                                        </div>
-                                    </div>
-
-                                    {result.sources && result.sources.length > 0 && (
-                                        <div>
-                                            <h4 className="font-medium mb-2">Sources</h4>
-                                            <div className="space-y-3">
-                                                {result.sources.map((source, i) => (
-                                                    <div key={i} className="border rounded-md p-3">
-                                                        <a
-                                                            href={source.url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="font-medium text-blue-600 hover:underline"
-                                                        >
-                                                            {source.title}
-                                                        </a>
-                                                        <p className="text-sm mt-1 text-gray-600 line-clamp-2">
-                                                            {source.summary}
-                                                        </p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </DialogContent>
-                        </Dialog>
+                    <div>
+                        <h4 className="text-sm font-medium mb-2">Recommendation Rationale</h4>
+                        <p className="text-sm text-gray-300">{result.rationale}</p>
                     </div>
                 </div>
             </div>

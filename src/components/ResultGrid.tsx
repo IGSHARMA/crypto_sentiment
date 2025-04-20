@@ -158,15 +158,15 @@ export function ResultGrid() {
 
     return (
         <div className="space-y-8">
-            {/* AI Assistant Chat Interface - Always visible */}
+            {/* AI Assistant*/}
             <div id="ai-assistant-section" className="mt-8 space-y-6">
                 <div className="border-b border-gray-200 dark:border-gray-700 pb-2">
-                    <h2 className="text-xl font-semibold">Trencher AI</h2>
+                    <h2 className="text-xl font-semibold">degenAI Assistant</h2>
                 </div>
 
                 <div
                     ref={chatContainerRef}
-                    className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden max-h-[800px] overflow-y-auto"
+                    className="bg-[#1e1e1e] dark:bg-[#1e1e1e] rounded-lg shadow-sm overflow-hidden max-h-[800px] overflow-y-auto"
                 >
                     {chatHistory.map((item, index) => {
                         const isLatestMessage = index === chatHistory.length - 1;
@@ -179,7 +179,7 @@ export function ResultGrid() {
                             >
                                 <div className="flex items-start">
                                     <div className="flex-shrink-0 mr-4">
-                                        <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                                        <div className="w-10 h-10 rounded-full bg-[#252525] flex items-center justify-center text-white font-bold">
                                             AI
                                         </div>
                                     </div>
@@ -340,12 +340,12 @@ export function ResultGrid() {
             <div className="border dark:border-gray-700 rounded-lg overflow-hidden">
                 <button
                     onClick={() => setAnalysisOpen(!analysisOpen)}
-                    className="w-full flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    className="w-full flex justify-between items-center p-4 bg-[#1e1e1e] dark:bg-[#1e1e1e] hover:bg-[#252525] dark:hover:bg-[#252525] transition-colors"
                 >
                     <h2 className="text-xl font-semibold flex items-center">
                         Analysis Results History
                         {analysisHistory.length > 0 && (
-                            <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 rounded-full">
+                            <span className="ml-2 px-2 py-1 text-xs bg-[#252525] text-white dark:bg-[#252525] dark:text-white rounded-full">
                                 {analysisHistory.length}
                             </span>
                         )}
@@ -384,12 +384,12 @@ export function ResultGrid() {
             <div className="border dark:border-gray-700 rounded-lg overflow-hidden">
                 <button
                     onClick={() => setComparisonOpen(!comparisonOpen)}
-                    className="w-full flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    className="w-full flex justify-between items-center p-4 bg-[#1e1e1e] dark:bg-[#1e1e1e] hover:bg-[#252525] dark:hover:bg-[#252525] transition-colors"
                 >
                     <h2 className="text-xl font-semibold flex items-center">
                         Comparison Results History
                         {comparisonHistory.length > 0 && (
-                            <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 rounded-full">
+                            <span className="ml-2 px-2 py-1 text-xs bg-[#252525] text-white dark:bg-[#252525] dark:text-white rounded-full">
                                 {comparisonHistory.length}
                             </span>
                         )}

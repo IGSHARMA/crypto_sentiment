@@ -286,19 +286,19 @@ export default function Home() {
         {/* Content */}
         <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center">
           <div
-            className={`mb-2 flex items-center transition-opacity duration-800 ${isLoaded ? 'opacity-100' : 'opacity-0 translate-y-5'}`}
+            className={`mb-10 transition-opacity duration-800 ${isLoaded ? 'opacity-100' : 'opacity-0 translate-y-5'}`}
             style={{ transitionDelay: '200ms' }}
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#1a1f29]">
+            <div className="flex items-center justify-center">
               <Image
-                src="/logo.svg"
-                alt="Portfolio-Scout Logo"
-                width={28}
-                height={28}
-                className="dark:invert"
+                src="/degenAI-logo.png"
+                alt="DegenAI Logo"
+                width={240}
+                height={240}
+                className="object-contain"
+                priority
               />
             </div>
-            <h1 className="ml-3 text-3xl font-bold text-white">Portfolio-Scout</h1>
           </div>
 
           <h2
@@ -309,7 +309,7 @@ export default function Home() {
           </h2>
 
           <p
-            className={`mb-8 max-w-2xl text-lg text-gray-400 transition-opacity duration-800 ${isLoaded ? 'opacity-100' : 'opacity-0 translate-y-5'}`}
+            className={`mb-10 max-w-2xl text-lg text-gray-400 transition-opacity duration-800 ${isLoaded ? 'opacity-100' : 'opacity-0 translate-y-5'}`}
             style={{ transitionDelay: '600ms' }}
           >
             Advanced analytics, real-time data, and AI-powered insights to navigate the crypto market with confidence.
@@ -405,73 +405,101 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Price ticker at bottom */}
+        {/* Price ticker at bottom - improved version */}
         <div
           className={`absolute bottom-0 left-0 right-0 overflow-hidden border-t border-[#2a2f3a] bg-[#0e1217]/80 backdrop-blur-sm transition-all duration-800 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
           style={{ transitionDelay: '1000ms' }}
         >
           <div className="ticker-wrap">
             <div className="ticker">
-              <div className="ticker-item flex items-center">
+              {/* First set of ticker items */}
+              <div className="ticker-item">
                 <span className="mr-1 text-orange-500">₿</span>
                 <span className="font-medium">BTC</span>
                 <span className="ml-2 text-sm text-gray-400">$85,234.78</span>
                 <span className="ml-2 text-xs text-green-500">+0.93%</span>
               </div>
-              <div className="ticker-item flex items-center">
+              <div className="ticker-item">
                 <span className="mr-1 text-blue-500">Ξ</span>
                 <span className="font-medium">ETH</span>
                 <span className="ml-2 text-sm text-gray-400">$1,608.36</span>
                 <span className="ml-2 text-xs text-green-500">+1.47%</span>
               </div>
-              <div className="ticker-item flex items-center">
+              <div className="ticker-item">
                 <span className="mr-1 text-purple-500">◎</span>
                 <span className="font-medium">SOL</span>
                 <span className="ml-2 text-sm text-gray-400">$139.43</span>
                 <span className="ml-2 text-xs text-green-500">+5.0%</span>
               </div>
-              <div className="ticker-item flex items-center">
+              <div className="ticker-item">
                 <span className="mr-1 text-blue-400">✕</span>
                 <span className="font-medium">XRP</span>
                 <span className="ml-2 text-sm text-gray-400">$2.08</span>
                 <span className="ml-2 text-xs text-green-500">+1.1%</span>
               </div>
-              <div className="ticker-item flex items-center">
+              <div className="ticker-item">
                 <span className="mr-1 text-yellow-500">BNB</span>
                 <span className="font-medium">BNB</span>
                 <span className="ml-2 text-sm text-gray-400">$589.98</span>
                 <span className="ml-2 text-xs text-red-500">-0.6%</span>
               </div>
-              <div className="ticker-item flex items-center">
+              <div className="ticker-item">
                 <span className="mr-1 text-green-500">₮</span>
                 <span className="font-medium">USDT</span>
                 <span className="ml-2 text-sm text-gray-400">$1.00</span>
                 <span className="ml-2 text-xs text-red-500">-0.01%</span>
               </div>
-              {/* Repeat for infinite scroll effect */}
-              <div className="ticker-item flex items-center">
+
+              {/* Duplicate set for continuous scrolling */}
+              <div className="ticker-item">
                 <span className="mr-1 text-orange-500">₿</span>
                 <span className="font-medium">BTC</span>
                 <span className="ml-2 text-sm text-gray-400">$85,234.78</span>
                 <span className="ml-2 text-xs text-green-500">+0.93%</span>
               </div>
-              <div className="ticker-item flex items-center">
+              <div className="ticker-item">
                 <span className="mr-1 text-blue-500">Ξ</span>
                 <span className="font-medium">ETH</span>
                 <span className="ml-2 text-sm text-gray-400">$1,608.36</span>
                 <span className="ml-2 text-xs text-green-500">+1.47%</span>
               </div>
-              <div className="ticker-item flex items-center">
+              <div className="ticker-item">
                 <span className="mr-1 text-purple-500">◎</span>
                 <span className="font-medium">SOL</span>
                 <span className="ml-2 text-sm text-gray-400">$139.43</span>
                 <span className="ml-2 text-xs text-green-500">+5.0%</span>
               </div>
-              <div className="ticker-item flex items-center">
+              <div className="ticker-item">
                 <span className="mr-1 text-blue-400">✕</span>
                 <span className="font-medium">XRP</span>
                 <span className="ml-2 text-sm text-gray-400">$2.08</span>
                 <span className="ml-2 text-xs text-green-500">+1.1%</span>
+              </div>
+              <div className="ticker-item">
+                <span className="mr-1 text-yellow-500">BNB</span>
+                <span className="font-medium">BNB</span>
+                <span className="ml-2 text-sm text-gray-400">$589.98</span>
+                <span className="ml-2 text-xs text-red-500">-0.6%</span>
+              </div>
+              <div className="ticker-item">
+                <span className="mr-1 text-green-500">₮</span>
+                <span className="font-medium">USDT</span>
+                <span className="ml-2 text-sm text-gray-400">$1.00</span>
+                <span className="ml-2 text-xs text-red-500">-0.01%</span>
+              </div>
+
+              {/* Add a third set for extra safety on wider screens */}
+              <div className="ticker-item">
+                <span className="mr-1 text-orange-500">₿</span>
+                <span className="font-medium">BTC</span>
+                <span className="ml-2 text-sm text-gray-400">$85,234.78</span>
+                <span className="ml-2 text-xs text-green-500">+0.93%</span>
+              </div>
+              <div className="ticker-item">
+                <span className="mr-1 text-blue-500">Ξ</span>
+                <span className="font-medium">ETH</span>
+                <span className="ml-2 text-sm text-gray-400">$1,608.36</span>
+                <span className="ml-2 text-xs text-green-500">+1.47%</span>
               </div>
             </div>
           </div>
@@ -481,33 +509,34 @@ export default function Home() {
   }
 
   return (
-    <div className="grid grid-rows-[auto_1fr_auto] min-h-screen p-8 gap-8 font-[family-name:var(--font-geist-sans)]">
+    <div className="grid grid-rows-[auto_1fr_auto] min-h-screen p-8 gap-8 font-[family-name:var(--font-geist-sans)] bg-[#0a0d12] text-white">
       <header className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center">
           <Image
-            src="/logo.svg"
-            alt="Portfolio-Scout Logo"
-            width={40}
-            height={40}
-            className="dark:invert"
+            src="/degenAI-logo.png"
+            alt="DegenAI Logo"
+            width={60}
+            height={60}
+            className="object-contain"
           />
-          <h1 className="text-2xl font-bold">Portfolio-Scout</h1>
         </div>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-gray-400">
           Data powered by CoinGecko, LunarCrush, and Tavily
         </div>
       </header>
 
       <main className="flex flex-col gap-8">
-        <section className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
-          <div className="mb-6">
-            <div className="flex overflow-x-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+        <section className="bg-[#080808] p-6 rounded-lg border border-[#4ade80]/30 shadow-[0_0_15px_rgba(74,222,128,0.15)] relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#4ade80]/5 to-transparent pointer-events-none"></div>
+
+          <div className="relative z-10 mb-6">
+            <div className="flex overflow-x-auto mb-4 bg-[#111111] rounded-lg p-1 border border-[#222222]">
               <button
                 key="Coins"
                 onClick={() => setActiveTab("Coins")}
                 className={`px-4 py-2 rounded-md font-medium flex items-center ${activeTab === "Coins"
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  ? "bg-[#4ade80] text-[#0a0d12]"
+                  : "text-gray-300 hover:bg-[#2a2f3a] hover:text-[#4ade80]"
                   }`}
               >
                 <span className="mr-2">🪙</span>
@@ -517,31 +546,38 @@ export default function Home() {
                 key="DexScan"
                 onClick={() => setActiveTab("DexScan")}
                 className={`px-4 py-2 rounded-md font-medium flex items-center ${activeTab === "DexScan"
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  ? "bg-[#4ade80] text-[#0a0d12]"
+                  : "text-gray-300 hover:bg-[#2a2f3a] hover:text-[#4ade80]"
                   }`}
               >
                 <span className="mr-2">🔍</span>
                 DexScan
               </button>
-              {/* Comment out other tabs */}
             </div>
           </div>
 
-          {renderTabContent()}
+          <div className="relative z-10">
+            {renderTabContent()}
+          </div>
         </section>
 
-        <section>
-          <ResultGrid />
+        <section className="bg-[#080808] p-6 rounded-lg border border-[#4ade80]/30 shadow-[0_0_15px_rgba(74,222,128,0.15)] relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#4ade80]/5 to-transparent pointer-events-none"></div>
+          <div className="relative z-10">
+            <ResultGrid />
+          </div>
         </section>
 
-        <section>
-          <ComparisonResults />
+        <section className="bg-[#080808] p-6 rounded-lg border border-[#4ade80]/30 shadow-[0_0_15px_rgba(74,222,128,0.15)] relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#4ade80]/5 to-transparent pointer-events-none"></div>
+          <div className="relative z-10">
+            <ComparisonResults />
+          </div>
         </section>
       </main>
 
-      <footer className="flex justify-center items-center py-4 text-sm text-gray-500">
-        <p>© 2025 Portfolio-Scout • <a href="#" className="underline">Terms</a> • <a href="#" className="underline">Privacy</a></p>
+      <footer className="flex justify-center items-center py-4 text-sm text-gray-400">
+        <p>© 2025 degenAI • <a href="#" className="underline hover:text-[#4ade80]">Terms</a> • <a href="#" className="underline hover:text-[#4ade80]">Privacy</a></p>
       </footer>
     </div>
   );
