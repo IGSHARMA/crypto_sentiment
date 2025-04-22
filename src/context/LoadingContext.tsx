@@ -2,12 +2,21 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 type LoadingContextType = {
     isLoading: boolean;
+    setIsLoading: (isLoading: boolean) => void;
     loadingMessage: string;
+    setLoadingMessage: (message: string) => void;
     startLoading: (message: string) => void;
     stopLoading: () => void;
 };
 
-const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
+export const LoadingContext = createContext<LoadingContextType>({
+    isLoading: false,
+    setIsLoading: () => { },
+    loadingMessage: "",
+    setLoadingMessage: () => { },
+    startLoading: () => { },
+    stopLoading: () => { },
+});
 
 export function LoadingProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(false);
@@ -23,16 +32,10 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <LoadingContext.Provider value={{ isLoading, loadingMessage, startLoading, stopLoading }}>
+        <LoadingContext.Provider value={{ isLoading, setIsLoading, loadingMessage, setLoadingMessage, startLoading, stopLoading }}>
             {children}
         </LoadingContext.Provider>
     );
 }
 
-export function useLoading() {
-    const context = useContext(LoadingContext);
-    if (context === undefined) {
-        throw new Error('useLoading must be used within a LoadingProvider');
-    }
-    return context;
-} 
+export const useLoading = () => useContext(LoadingContext); 
